@@ -14,7 +14,7 @@ namespace QuakeSounds
         public override string ModuleAuthor => "Kalle <kalle@kandru.de>";
 
         private readonly PlayerLanguageManager playerLanguageManager = new();
-        private Dictionary<CCSPlayerController, int> _playerKillsInRound = [];
+        private readonly Dictionary<CCSPlayerController, int> _playerKillsInRound = [];
 
         public override void Load(bool hotReload)
         {
@@ -25,10 +25,14 @@ namespace QuakeSounds
             RegisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
             if (hotReload)
+            {
                 foreach (CCSPlayerController entry in Utilities.GetPlayers().Where(
-                    p => p.IsValid
+                    static p => p.IsValid
                         && !p.IsBot))
+                {
                     LoadPlayerLanguage(entry.NetworkIDString);
+                }
+            }
         }
 
         public override void Unload(bool hotReload)
@@ -44,7 +48,10 @@ namespace QuakeSounds
         private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
         {
             // reset player kills
-            if (Config.ResetKillsOnRoundStart) _playerKillsInRound.Clear();
+            if (Config.ResetKillsOnRoundStart)
+            {
+                _playerKillsInRound.Clear();
+            }
             // check for round start sound
             if (Config.Sounds.TryGetValue("round_start", out Dictionary<string, string>? roundstartSound)
                 && roundstartSound.TryGetValue("_sound", out string? roundstartSoundName))
@@ -59,7 +66,7 @@ namespace QuakeSounds
                     // play sound
                     PlaySound(entry, roundstartSoundName, filter: filter);
                     // stop if sound is playing on world entity to avoid double play
-                    if (Config.PlayOn.Equals("world", StringComparison.CurrentCultureIgnoreCase))
+                    if (Config.PlayOn.Equals("world", StringComparison.OrdinalIgnoreCase))
                     {
                         break;
                     }
@@ -84,7 +91,7 @@ namespace QuakeSounds
                     // play sound
                     PlaySound(entry, roundfreezeendSoundName, filter: filter);
                     // stop if sound is playing on world entity to avoid double play
-                    if (Config.PlayOn.Equals("world", StringComparison.CurrentCultureIgnoreCase))
+                    if (Config.PlayOn.Equals("world", StringComparison.OrdinalIgnoreCase))
                     {
                         break;
                     }
@@ -102,7 +109,7 @@ namespace QuakeSounds
                 return HookResult.Continue;
             }
             // check for world damage
-            if (@event.Weapon.ToLower() == "world" && Config.IgnoreWorldDamage)
+            if (@event.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) && Config.IgnoreWorldDamage)
             {
                 DebugPrint("Ignoring world damage.");
                 return HookResult.Continue;
@@ -113,8 +120,8 @@ namespace QuakeSounds
             DebugPrint($"Player {attacker?.PlayerName} killed by {victim?.PlayerName} with weapon {@event.Weapon}.");
             // get weapon key
             string weaponKey = @event.Weapon.StartsWith("weapon_", StringComparison.OrdinalIgnoreCase)
-                    ? @event.Weapon.ToLower()
-                    : "weapon_" + @event.Weapon.ToLower();
+                    ? @event.Weapon.ToLower(CultureInfo.CurrentCulture)
+                    : "weapon_" + @event.Weapon.ToLower(CultureInfo.CurrentCulture);
             // check if attacker exists and is valid
             if (attacker != null
                 && attacker.IsValid
@@ -124,9 +131,9 @@ namespace QuakeSounds
                 if (attacker != victim || Config.CountSelfKills
                     || (victim != null && victim.IsValid && (attacker.Team != victim.Team || Config.CountTeamKills)))
                 {
-                    if (_playerKillsInRound.ContainsKey(attacker))
+                    if (_playerKillsInRound.TryGetValue(attacker, out int amountKills))
                     {
-                        _playerKillsInRound[attacker]++;
+                        _playerKillsInRound[attacker] = ++amountKills;
                     }
                     else
                     {
@@ -135,9 +142,9 @@ namespace QuakeSounds
                     DebugPrint($"Player {attacker.PlayerName} has {_playerKillsInRound[attacker]} kills.");
                 }
                 // play sound if we found the amount of kills in Config.Sounds
-                if (_playerKillsInRound.ContainsKey(attacker)
-                    && Config.Sounds.ContainsKey(_playerKillsInRound[attacker].ToString())
-                    && Config.Sounds[_playerKillsInRound[attacker].ToString()].TryGetValue("_sound", out string? sound))
+                if (_playerKillsInRound.TryGetValue(attacker, out int value)
+                    && Config.Sounds.ContainsKey(value.ToString())
+                    && Config.Sounds[value.ToString()].TryGetValue("_sound", out string? sound))
                 {
                     RecipientFilter filter = PrepareFilter(
                         attacker,
@@ -145,7 +152,7 @@ namespace QuakeSounds
                         Config.Sounds[_playerKillsInRound[attacker].ToString()].TryGetValue("_filter", out string? soundFilter) ? soundFilter : null
                     );
                     PlaySound(attacker, sound, filter: filter);
-                    PrintMessage(attacker, Config.Sounds[_playerKillsInRound[attacker].ToString()], filter);
+                    PrintMessage(attacker, Config.Sounds[value.ToString()], filter);
                 }
                 // check for self kill
                 else if (Config.Sounds.TryGetValue("selfkill", out Dictionary<string, string>? selfkillSound)
@@ -175,8 +182,8 @@ namespace QuakeSounds
                 }
                 // check for first blood
                 else if (Config.Sounds.TryGetValue("firstblood", out Dictionary<string, string>? firstbloodSound)
-                    && _playerKillsInRound.ContainsKey(attacker)
-                    && _playerKillsInRound.Count == 1 && _playerKillsInRound[attacker] == 1
+                    && _playerKillsInRound.TryGetValue(attacker, out int amountKills)
+                    && _playerKillsInRound.Count == 1 && amountKills == 1
                     && firstbloodSound.TryGetValue("_sound", out string? firstbloodSoundName))
                 {
                     RecipientFilter filter = PrepareFilter(
@@ -231,7 +238,7 @@ namespace QuakeSounds
                 && victim.IsValid
                 && Config.ResetKillsOnDeath)
             {
-                _playerKillsInRound.Remove(victim);
+                _ = _playerKillsInRound.Remove(victim);
             }
             return HookResult.Continue;
         }
@@ -241,7 +248,11 @@ namespace QuakeSounds
             CCSPlayerController? player = @event.Userid;
             if (player == null
                 || !player.IsValid
-                || player.IsBot) return HookResult.Continue;
+                || player.IsBot)
+            {
+                return HookResult.Continue;
+            }
+
             LoadPlayerLanguage(player.NetworkIDString);
             return HookResult.Continue;
         }
@@ -251,7 +262,11 @@ namespace QuakeSounds
             CCSPlayerController? player = Utilities.GetPlayerFromUserid(@event.Userid);
             if (player == null
                 || !player.IsValid
-                || player.IsBot) return HookResult.Continue;
+                || player.IsBot)
+            {
+                return HookResult.Continue;
+            }
+
             if (@event.Text.StartsWith("!lang", StringComparison.OrdinalIgnoreCase))
             {
                 // get language from command instead of player because it defaults to english all the time Oo
@@ -281,7 +296,7 @@ namespace QuakeSounds
             RecipientFilter filter = [];
             // check which soundfilter to use
             string soundFilter = _soundFilter ?? Config.FilterSounds;
-            foreach (var entry in Utilities.GetPlayers().Where(
+            foreach (CCSPlayerController? entry in Utilities.GetPlayers().Where(
                 p => p.IsValid
                 // ignore bots
                 && (!p.IsBot || !Config.IgnoreBots)
@@ -313,7 +328,7 @@ namespace QuakeSounds
                 if (filter == null)
                 {
                     // play sound for all players
-                    foreach (var entry in Utilities.GetPlayers().Where(
+                    foreach (CCSPlayerController? entry in Utilities.GetPlayers().Where(
                     p => p.IsValid
                         && !p.IsBot
                         && !Config.PlayersMuted.Contains(p.NetworkIDString)).ToList())
@@ -324,22 +339,22 @@ namespace QuakeSounds
                 else
                 {
                     // play sound for filtered players
-                    foreach (var entry in filter)
+                    foreach (CCSPlayerController entry in filter)
                     {
                         entry.ExecuteClientCommand($"play {sound}");
                     }
                 }
             }
             // check if sound should be played on the player
-            else if (Config.PlayOn.Equals("player", StringComparison.CurrentCultureIgnoreCase) && playOn == null
-                    || playOn != null && playOn == "player")
+            else if ((Config.PlayOn.Equals("player", StringComparison.OrdinalIgnoreCase) && playOn == null)
+                    || (playOn != null && playOn == "player"))
             {
                 DebugPrint("Playing quake sound on player.");
-                player.EmitSound(sound, filter);
+                _ = player.EmitSound(sound, filter);
             }
             // check if sound should be played on the world entity
-            else if (Config.PlayOn.Equals("world", StringComparison.CurrentCultureIgnoreCase) && playOn == null
-                    || playOn != null && playOn == "world")
+            else if ((Config.PlayOn.Equals("world", StringComparison.OrdinalIgnoreCase) && playOn == null)
+                    || (playOn != null && playOn == "world"))
             {
                 // get world entity
                 CWorld? worldEnt = Utilities.FindAllEntitiesByDesignerName<CWorld>("worldent").FirstOrDefault();
@@ -351,7 +366,7 @@ namespace QuakeSounds
                 }
                 DebugPrint("Playing quake sound on world entity.");
                 // play sound
-                worldEnt.EmitSound(sound, filter);
+                _ = worldEnt.EmitSound(sound, filter);
             }
         }
 
@@ -360,9 +375,9 @@ namespace QuakeSounds
             // declare local variable to print message correctly depending on filter
             void DoPrint(CCSPlayerController entry, CCSPlayerController player, Dictionary<string, string> sound)
             {
-                string? message = sound.TryGetValue(playerLanguageManager.GetLanguage(new SteamID(entry.NetworkIDString)).TwoLetterISOLanguageName, out var playerMessage)
+                string? message = sound.TryGetValue(playerLanguageManager.GetLanguage(new SteamID(entry.NetworkIDString)).TwoLetterISOLanguageName, out string? playerMessage)
                     ? playerMessage
-                    : (sound.TryGetValue(CoreConfig.ServerLanguage, out var serverMessage)
+                    : (sound.TryGetValue(CoreConfig.ServerLanguage, out string? serverMessage)
                         ? serverMessage
                         : sound.First().Value);
                 if (message != null)
@@ -371,46 +386,62 @@ namespace QuakeSounds
                     using (new WithTemporaryCulture(new CultureInfo(playerLanguageManager.GetLanguage(new SteamID(entry.NetworkIDString)).TwoLetterISOLanguageName)))
                     {
                         // check for center messatges
-                        if (Config.CenterMessage && Config.CenterMessageType.Equals("default", StringComparison.CurrentCultureIgnoreCase))
+                        if (Config.CenterMessage && Config.CenterMessageType.Equals("default", StringComparison.OrdinalIgnoreCase))
                         {
                             if (entry == player)
+                            {
                                 entry.PrintToCenter(Localizer["center.msg.player"].Value
                                     .Replace("{message}", message));
+                            }
                             else
+                            {
                                 entry.PrintToCenter(Localizer["center.msg.other"].Value
                                     .Replace("{player}", player.PlayerName)
                                     .Replace("{message}", message));
+                            }
                         }
-                        else if (Config.CenterMessage && Config.CenterMessageType.Equals("alert", StringComparison.CurrentCultureIgnoreCase))
+                        else if (Config.CenterMessage && Config.CenterMessageType.Equals("alert", StringComparison.OrdinalIgnoreCase))
                         {
                             if (entry == player)
+                            {
                                 entry.PrintToCenterAlert(Localizer["center.msg.player"].Value
                                     .Replace("{message}", message));
+                            }
                             else
+                            {
                                 entry.PrintToCenterAlert(Localizer["center.msg.other"].Value
                                     .Replace("{player}", player.PlayerName)
                                     .Replace("{message}", message));
+                            }
                         }
-                        else if (Config.CenterMessage && Config.CenterMessageType.Equals("html", StringComparison.CurrentCultureIgnoreCase))
+                        else if (Config.CenterMessage && Config.CenterMessageType.Equals("html", StringComparison.OrdinalIgnoreCase))
                         {
                             if (entry == player)
+                            {
                                 entry.PrintToCenterHtml(Localizer["center.msg.player"].Value
                                     .Replace("{message}", message));
+                            }
                             else
+                            {
                                 entry.PrintToCenterHtml(Localizer["center.msg.other"].Value
                                     .Replace("{player}", player.PlayerName)
                                     .Replace("{message}", message));
+                            }
                         }
                         // check for chat message
                         if (Config.ChatMessage)
                         {
                             if (entry == player)
+                            {
                                 entry.PrintToChat(Localizer["chat.msg.player"].Value
                                     .Replace("{message}", message));
+                            }
                             else
+                            {
                                 entry.PrintToChat(Localizer["chat.msg.other"].Value
                                     .Replace("{player}", player.PlayerName)
                                     .Replace("{message}", message));
+                            }
                         }
                     }
                 }
