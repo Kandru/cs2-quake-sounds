@@ -27,6 +27,8 @@ This plugin automatically creates a readable JSON configuration file. This confi
 {
   "enabled": true,
   "debug": false,
+  "settings_command": "qs",
+  "settings_menu": true,
   "enabled_during_warmup": true,
   "play_on": "player",
   "filter_sounds": "all",
@@ -129,6 +131,14 @@ Whether this plug-in is enabled or not.
 ### debug
 
 Debug mode. Only necessary during development or testing.
+
+### settings_command
+
+The command players can use to enable or disable the quake sounds for themself (defaults to !qs). Please do NOT add the "!" yourself. You can change this prefix in the CSSharp core configuration.
+
+### settings_menu
+
+This toggles the settings menu. If disabled a player can only turn on or off the quake sounds with the setting command. Otherwise a menu will be shown which allows a player to change other settings in future.
 
 ### enabled_during_warmup
 

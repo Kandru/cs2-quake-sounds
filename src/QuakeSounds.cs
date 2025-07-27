@@ -24,6 +24,7 @@ namespace QuakeSounds
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             RegisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
+            AddCommand(Config.SettingsCommand, "QuakeSounds user settings", CommandQuakeSoundSettings);
             if (hotReload)
             {
                 foreach (CCSPlayerController entry in Utilities.GetPlayers().Where(
@@ -43,6 +44,7 @@ namespace QuakeSounds
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             DeregisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
+            RemoveCommand(Config.SettingsCommand, CommandQuakeSoundSettings);
         }
 
         private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)

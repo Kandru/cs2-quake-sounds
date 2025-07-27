@@ -8,31 +8,42 @@ namespace QuakeSounds
 {
     public partial class QuakeSounds
     {
-        [ConsoleCommand("qs", "QuakeSounds")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "")]
-        public void CommandSounds(CCSPlayerController player, CommandInfo command)
+        public void CommandQuakeSoundSettings(CCSPlayerController? player, CommandInfo command)
         {
-            // close any active menu
-            MenuManager.CloseActiveMenu(player);
-            // create menu to choose sound
-            var menu = new ChatMenu(Localizer["menu.title"]);
-            // check if player is muted
-            if (Config.PlayersMuted.Contains(player.NetworkIDString))
+            if (player == null
+                || !player.IsValid)
             {
-                menu.AddMenuOption(Localizer["menu.unmute"], (_, _) => ToggleMute(player));
+                return;
+            }
+            if (Config.SettingsMenu)
+            {
+                // close any active menu
+                MenuManager.CloseActiveMenu(player);
+                // create menu to choose sound
+                var menu = new ChatMenu(Localizer["menu.title"]);
+                // check if player is muted
+                if (Config.PlayersMuted.Contains(player.NetworkIDString))
+                {
+                    menu.AddMenuOption(Localizer["menu.unmute"], (_, _) => ToggleMute(player));
+                }
+                else
+                {
+                    // add option to mute
+                    menu.AddMenuOption(Localizer["menu.mute"], (_, _) => ToggleMute(player));
+                }
+                // open menu
+                MenuManager.OpenChatMenu(player, menu);
             }
             else
             {
-                // add option to mute
-                menu.AddMenuOption(Localizer["menu.mute"], (_, _) => ToggleMute(player));
+                ToggleMute(player);
             }
-            // open menu
-            MenuManager.OpenChatMenu(player, menu);
         }
 
-        [ConsoleCommand("QuakeSounds", "QuakeSounds admin commands")]
+        [ConsoleCommand("quakesounds", "QuakeSounds admin commands")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY, minArgs: 1, usage: "<command>")]
-        public void CommandQuakeSounds(CCSPlayerController player, CommandInfo command)
+        public void CommandQuakeSoundAdmin(CCSPlayerController player, CommandInfo command)
         {
             string subCommand = command.GetArg(1);
             switch (subCommand.ToLower())

@@ -11,6 +11,10 @@ namespace QuakeSounds
         [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
         // debug prints
         [JsonPropertyName("debug")] public bool Debug { get; set; } = false;
+        // sound settings command
+        [JsonPropertyName("settings_command")] public string SettingsCommand { get; set; } = "qs";
+        // toggle settings menu
+        [JsonPropertyName("settings_menu")] public bool SettingsMenu { get; set; } = true;
         // enable during warmup
         [JsonPropertyName("enabled_during_warmup")] public bool EnabledDuringWarmup { get; set; } = true;
         // where to play sounds on (player, world)
