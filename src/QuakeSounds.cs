@@ -19,6 +19,7 @@ namespace QuakeSounds
         public override void Load(bool hotReload)
         {
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
+            RegisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             RegisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
@@ -33,6 +34,7 @@ namespace QuakeSounds
         public override void Unload(bool hotReload)
         {
             DeregisterEventHandler<EventRoundStart>(OnRoundStart);
+            DeregisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             DeregisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             DeregisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
@@ -41,7 +43,53 @@ namespace QuakeSounds
 
         private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
         {
+            // reset player kills
             if (Config.ResetKillsOnRoundStart) _playerKillsInRound.Clear();
+            // check for round start sound
+            if (Config.Sounds.TryGetValue("round_start", out Dictionary<string, string>? roundstartSound)
+                && roundstartSound.TryGetValue("_sound", out string? roundstartSoundName))
+            {
+                RecipientFilter filter = PrepareFilter(
+                    null,
+                    null,
+                    roundstartSound.TryGetValue("_filter", out string? soundFilter) ? soundFilter : null
+                );
+                foreach (CCSPlayerController entry in Utilities.GetPlayers().ToList())
+                {
+                    // play sound
+                    PlaySound(entry, roundstartSoundName, filter: filter);
+                    // stop if sound is playing on world entity to avoid double play
+                    if (Config.PlayOn.Equals("world", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        break;
+                    }
+                }
+            }
+            return HookResult.Continue;
+        }
+
+        private HookResult OnRoundFreezeEnd(EventRoundFreezeEnd @event, GameEventInfo info)
+        {
+            // check for round freeze end sound
+            if (Config.Sounds.TryGetValue("round_freeze_end", out Dictionary<string, string>? roundfreezeendSound)
+                && roundfreezeendSound.TryGetValue("_sound", out string? roundfreezeendSoundName))
+            {
+                RecipientFilter filter = PrepareFilter(
+                    null,
+                    null,
+                    roundfreezeendSound.TryGetValue("_filter", out string? soundFilter) ? soundFilter : null
+                );
+                foreach (CCSPlayerController entry in Utilities.GetPlayers().ToList())
+                {
+                    // play sound
+                    PlaySound(entry, roundfreezeendSoundName, filter: filter);
+                    // stop if sound is playing on world entity to avoid double play
+                    if (Config.PlayOn.Equals("world", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        break;
+                    }
+                }
+            }
             return HookResult.Continue;
         }
 

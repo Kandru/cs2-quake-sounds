@@ -104,6 +104,12 @@ This plugin automatically creates a readable JSON configuration file. This confi
       "de": "Granaten-Kill",
       "en": "Grenade Kill",
       "_sound": "QuakeSoundsD.Perfect"
+    },
+    "round_start": {
+      "_sound": "QuakeSoundsD.Prepare"
+    },
+    "round_freeze_end": {
+      "_sound": "QuakeSoundsD.Play"
     }
   },
   "player_muted": [
@@ -186,13 +192,15 @@ Whether or not to reste kill streak on round start.
 
 ### sounds
 
-List of all sounds. The Key is either the amount of kills or a special key:
+List of all sounds. The Key is either the amount of kills, a weapon name or one of the following special keys:
 
 - firstblood
 - headshot
 - knifekill
 - selfkill
 - teamkill
+- round_start
+- round_freeze_end
 
 All weapons can make a sound on kill, e.g. HE-Grenade (weapon_hegrenade). Just use *weapon_<name>* as a key.
 
