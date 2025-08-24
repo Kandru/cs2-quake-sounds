@@ -42,9 +42,9 @@ namespace QuakeSounds
         // sounds dict (language, string to match, sound path)
         [JsonPropertyName("sounds")] public Dictionary<string, Dictionary<string, string>> Sounds { get; set; } = [];
         // muted players
-        [JsonPropertyName("player_muted")] public List<string> PlayersMuted { get; set; } = [];
+        [JsonPropertyName("players_muted")] public List<ulong> PlayersMuted { get; set; } = [];
         // player languages
-        [JsonPropertyName("player_languages")] public Dictionary<string, string> PlayerLanguages { get; set; } = [];
+        [JsonPropertyName("players_languages")] public Dictionary<ulong, string> PlayerLanguages { get; set; } = [];
     }
 
     public partial class QuakeSounds : BasePlugin, IPluginConfig<PluginConfig>
@@ -67,47 +67,47 @@ namespace QuakeSounds
 
         private bool ToggleMute(CCSPlayerController player)
         {
-            if (Config.PlayersMuted.Contains(player.NetworkIDString))
+            if (Config.PlayersMuted.Contains(player.SteamID))
             {
-                Config.PlayersMuted.Remove(player.NetworkIDString);
+                Config.PlayersMuted.Remove(player.SteamID);
                 Config.Update();
                 player.PrintToChat(Localizer["sounds.unmuted"]);
                 return false;
             }
             else
             {
-                Config.PlayersMuted.Add(player.NetworkIDString);
+                Config.PlayersMuted.Add(player.SteamID);
                 Config.Update();
                 player.PrintToChat(Localizer["sounds.muted"]);
                 return true;
             }
         }
 
-        private void LoadPlayerLanguage(string? steamID)
+        private void LoadPlayerLanguage(ulong? steamID)
         {
-            if (string.IsNullOrWhiteSpace(steamID)) return;
+            if (!steamID.HasValue) return;
             // check if the player has a language set
-            if (Config.PlayerLanguages.TryGetValue(steamID, out var language) && !string.IsNullOrWhiteSpace(language))
+            if (Config.PlayerLanguages.TryGetValue(steamID.Value, out var language) && !string.IsNullOrWhiteSpace(language))
             {
                 // set the language for the player
                 playerLanguageManager.SetLanguage(
-                    new SteamID(steamID),
+                    new SteamID(steamID.Value),
                     new System.Globalization.CultureInfo(language));
             }
         }
 
-        private void SavePlayerLanguage(string? steamID, string language)
+        private void SavePlayerLanguage(ulong? steamID, string language)
         {
-            if (string.IsNullOrWhiteSpace(steamID) || string.IsNullOrWhiteSpace(language)) return;
+            if (!steamID.HasValue || string.IsNullOrWhiteSpace(language)) return;
             // Try to add or update the player's language
-            if (!Config.PlayerLanguages.TryAdd(steamID, language))
+            if (!Config.PlayerLanguages.TryAdd(steamID.Value, language))
             {
-                Config.PlayerLanguages[steamID] = language;
+                Config.PlayerLanguages[steamID.Value] = language;
             }
             // write config
             Config.Update();
             // set the language for the player
-            playerLanguageManager.SetLanguage(new SteamID(steamID), new System.Globalization.CultureInfo(language));
+            playerLanguageManager.SetLanguage(new SteamID(steamID.Value), new System.Globalization.CultureInfo(language));
             DebugPrint($"Saved language for player {steamID} to {language}.");
         }
     }

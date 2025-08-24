@@ -23,7 +23,7 @@ namespace QuakeSounds
                 // create menu to choose sound
                 var menu = new ChatMenu(Localizer["menu.title"]);
                 // check if player is muted
-                if (Config.PlayersMuted.Contains(player.NetworkIDString))
+                if (Config.PlayersMuted.Contains(player.SteamID))
                 {
                     menu.AddMenuOption(Localizer["menu.unmute"], (_, _) => ToggleMute(player));
                 }

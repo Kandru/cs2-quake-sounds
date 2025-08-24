@@ -31,7 +31,7 @@ namespace QuakeSounds
                     static p => p.IsValid
                         && !p.IsBot))
                 {
-                    LoadPlayerLanguage(entry.NetworkIDString);
+                    LoadPlayerLanguage(entry.SteamID);
                 }
             }
         }
@@ -255,7 +255,7 @@ namespace QuakeSounds
                 return HookResult.Continue;
             }
 
-            LoadPlayerLanguage(player.NetworkIDString);
+            LoadPlayerLanguage(player.SteamID);
             return HookResult.Continue;
         }
 
@@ -279,7 +279,7 @@ namespace QuakeSounds
                     return HookResult.Continue;
                 }
                 // set language for player
-                SavePlayerLanguage(player.NetworkIDString, language);
+                SavePlayerLanguage(player.SteamID, language);
                 return HookResult.Continue;
             }
             // redraw GUI
@@ -303,7 +303,7 @@ namespace QuakeSounds
                 // ignore bots
                 && (!p.IsBot || !Config.IgnoreBots)
                 // ignore muted players
-                && !Config.PlayersMuted.Contains(p.NetworkIDString)
+                && !Config.PlayersMuted.Contains(p.SteamID)
                 // check for sound filter
                 && (soundFilter.Equals("all", StringComparison.OrdinalIgnoreCase)
                     || (soundFilter.Equals("attacker_team", StringComparison.OrdinalIgnoreCase) && p.Team == attacker?.Team)
@@ -333,7 +333,7 @@ namespace QuakeSounds
                     foreach (CCSPlayerController? entry in Utilities.GetPlayers().Where(
                     p => p.IsValid
                         && !p.IsBot
-                        && !Config.PlayersMuted.Contains(p.NetworkIDString)).ToList())
+                        && !Config.PlayersMuted.Contains(p.SteamID)).ToList())
                     {
                         entry.ExecuteClientCommand($"play {sound}");
                     }
@@ -377,7 +377,7 @@ namespace QuakeSounds
             // declare local variable to print message correctly depending on filter
             void DoPrint(CCSPlayerController entry, CCSPlayerController player, Dictionary<string, string> sound)
             {
-                string? message = sound.TryGetValue(playerLanguageManager.GetLanguage(new SteamID(entry.NetworkIDString)).TwoLetterISOLanguageName, out string? playerMessage)
+                string? message = sound.TryGetValue(playerLanguageManager.GetLanguage(new SteamID(entry.SteamID)).TwoLetterISOLanguageName, out string? playerMessage)
                     ? playerMessage
                     : (sound.TryGetValue(CoreConfig.ServerLanguage, out string? serverMessage)
                         ? serverMessage
@@ -385,7 +385,7 @@ namespace QuakeSounds
                 if (message != null)
                 {
                     // use players language for printing messages
-                    using (new WithTemporaryCulture(new CultureInfo(playerLanguageManager.GetLanguage(new SteamID(entry.NetworkIDString)).TwoLetterISOLanguageName)))
+                    using (new WithTemporaryCulture(new CultureInfo(playerLanguageManager.GetLanguage(new SteamID(entry.SteamID)).TwoLetterISOLanguageName)))
                     {
                         // check for center messatges
                         if (Config.CenterMessage && Config.CenterMessageType.Equals("default", StringComparison.OrdinalIgnoreCase))
@@ -454,7 +454,7 @@ namespace QuakeSounds
                 foreach (CCSPlayerController entry in Utilities.GetPlayers().Where(
                     p => p.IsValid
                     && !p.IsBot
-                    && !Config.PlayersMuted.Contains(p.NetworkIDString))
+                    && !Config.PlayersMuted.Contains(p.SteamID))
                     .ToList())
                 {
                     DoPrint(entry, player, sound);
