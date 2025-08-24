@@ -2,6 +2,6 @@ namespace QuakeSounds
 {
     public partial class QuakeSounds
     {
-        public override string ModuleVersion => "1.0.9";
+        public override string ModuleVersion => "1.0.10";
     }
 }
