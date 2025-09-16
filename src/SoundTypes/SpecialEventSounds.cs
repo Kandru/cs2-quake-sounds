@@ -3,17 +3,12 @@ using QuakeSounds.Services;
 
 namespace QuakeSounds.SoundTypes
 {
-    public class KillSounds(PluginConfig config, SoundService soundService, MessageService messageService,
+    public class SpecialEventSounds(PluginConfig config, SoundService soundService, MessageService messageService,
         FilterService filterService, Dictionary<CCSPlayerController, int> playerKillsInRound) : BaseSoundType(config, soundService, messageService, filterService)
     {
         private readonly Dictionary<CCSPlayerController, int> _playerKillsInRound = playerKillsInRound;
 
-        public bool TryPlayKillCountSound(CCSPlayerController attacker, CCSPlayerController? victim, int killCount)
-        {
-            return PlaySound(attacker, victim, killCount.ToString());
-        }
-
-        public bool TryPlaySpecialKillSound(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
+        public bool TryToPlay(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
         {
             (string, bool, string?)[] specialSounds =
             [

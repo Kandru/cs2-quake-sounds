@@ -7,12 +7,12 @@ namespace QuakeSounds.SoundTypes
 {
     public class RoundSounds(PluginConfig config, SoundService soundService, MessageService messageService, FilterService filterService) : BaseSoundType(config, soundService, messageService, filterService)
     {
-        public void PlayRoundSound(string soundKey)
+        public bool TryToPlay(string soundKey)
         {
             if (!Config.Sounds.TryGetValue(soundKey, out Dictionary<string, string>? soundConfig) ||
                 !soundConfig.TryGetValue("_sound", out string? soundName))
             {
-                return;
+                return false;
             }
 
             RecipientFilter filter = FilterService.PrepareFilter(null, null, soundConfig.GetValueOrDefault("_filter"));
@@ -21,6 +21,13 @@ namespace QuakeSounds.SoundTypes
             {
                 SoundService.PlaySound(player, soundName, Config.Global.PlayOnEntity, filter);
             }
+
+            return true;
+        }
+
+        public void PlayRoundSound(string soundKey)
+        {
+            _ = TryToPlay(soundKey);
         }
     }
 }

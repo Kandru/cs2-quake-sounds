@@ -7,7 +7,8 @@ namespace QuakeSounds.Managers
     public class SoundManager(PluginConfig config, SoundService soundService, MessageService messageService,
         FilterService filterService, Dictionary<CCSPlayerController, int> playerKillsInRound)
     {
-        private readonly KillSounds _killSounds = new(config, soundService, messageService, filterService, playerKillsInRound);
+        private readonly KillStreakSounds _killStreakSounds = new(config, soundService, messageService, filterService);
+        private readonly SpecialEventSounds _specialEventSounds = new(config, soundService, messageService, filterService, playerKillsInRound);
         private readonly WeaponSounds _weaponSounds = new(config, soundService, messageService, filterService);
         private readonly RoundSounds _roundSounds = new(config, soundService, messageService, filterService);
         private readonly Dictionary<CCSPlayerController, int> _playerKillsInRound = playerKillsInRound;
@@ -16,17 +17,25 @@ namespace QuakeSounds.Managers
         {
             int killCount = _playerKillsInRound.GetValueOrDefault(attacker);
 
-            if (_killSounds.TryPlayKillCountSound(attacker, victim, killCount))
+            var soundTypePriorities = new[]
             {
-                return;
-            }
+                (Type: "KillSounds", Priority: config.SoundPriorities.KillStreak, TryPlay: new Func<bool>(() =>
+                    _killStreakSounds.TryToPlay(attacker, victim, killCount))),
+                (Type: "SpecialEventSounds", Priority: config.SoundPriorities.SpecialEvents, TryPlay: new Func<bool>(() =>
+                    _specialEventSounds.TryToPlay(attacker, victim, eventData))),
+                (Type: "WeaponSounds", Priority: config.SoundPriorities.Weapons, TryPlay: new Func<bool>(() =>
+                    _weaponSounds.TryToPlay(attacker, victim, eventData.Weapon)))
+            }.OrderBy(x => x.Priority);
 
-            if (_killSounds.TryPlaySpecialKillSound(attacker, victim, eventData))
+            // Try to play sounds in priority order
+            foreach (var soundType in soundTypePriorities)
             {
-                return;
+                Console.WriteLine($"Trying to play sound from type: {soundType.Type} with priority {soundType.Priority}");
+                if (soundType.TryPlay())
+                {
+                    return;
+                }
             }
-
-            _ = _weaponSounds.TryPlayWeaponSound(attacker, victim, eventData.Weapon);
         }
 
         public void PlayRoundSound(string soundKey)

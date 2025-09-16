@@ -36,6 +36,13 @@ namespace QuakeSounds
         [JsonPropertyName("player_languages")] public Dictionary<ulong, string> PlayerLanguages { get; set; } = [];
     }
 
+    public class SoundPriorities
+    {
+        [JsonPropertyName("special_events")] public int SpecialEvents { get; set; } = 1;
+        [JsonPropertyName("weapons")] public int Weapons { get; set; } = 2;
+        [JsonPropertyName("kill_streak")] public int KillStreak { get; set; } = 3;
+    }
+
     public class PluginConfig : BasePluginConfig
     {
         [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
@@ -47,6 +54,7 @@ namespace QuakeSounds
         [JsonPropertyName("reset_kills_on_round_start")] public bool ResetKillsOnRoundStart { get; set; } = true;
         [JsonPropertyName("commands")] public CommandSettings Commands { get; set; } = new();
         [JsonPropertyName("messages")] public MessageSettings Messages { get; set; } = new();
+        [JsonPropertyName("sound_priorities")] public SoundPriorities SoundPriorities { get; set; } = new();
         [JsonPropertyName("sounds")] public Dictionary<string, Dictionary<string, string>> Sounds { get; set; } = [];
         [JsonPropertyName("data")] public PlayerData Data { get; set; } = new();
     }
