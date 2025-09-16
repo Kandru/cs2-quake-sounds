@@ -36,17 +36,6 @@ namespace QuakeSounds
             command.ReplyToCommand(response);
         }
 
-        public void OnLanguageCommand(CCSPlayerController? player, CommandInfo command)
-        {
-            if (player?.IsValid != true)
-            {
-                return;
-            }
-
-            string text = command.GetCommandString;
-            ProcessLanguageCommand(player, text);
-        }
-
         private void ShowSettingsMenu(CCSPlayerController player)
         {
             MenuManager.CloseActiveMenu(player);

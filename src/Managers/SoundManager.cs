@@ -17,7 +17,7 @@ namespace QuakeSounds.Managers
         {
             int killCount = _playerKillsInRound.GetValueOrDefault(attacker);
 
-            var soundTypePriorities = new[]
+            IOrderedEnumerable<(string Type, int Priority, Func<bool> TryPlay)> soundTypePriorities = new[]
             {
                 (Type: "KillSounds", Priority: config.SoundPriorities.KillStreak, TryPlay: new Func<bool>(() =>
                     _killStreakSounds.TryToPlay(attacker, victim, killCount))),
@@ -28,7 +28,7 @@ namespace QuakeSounds.Managers
             }.OrderBy(x => x.Priority);
 
             // Try to play sounds in priority order
-            foreach (var soundType in soundTypePriorities)
+            foreach ((string Type, int Priority, Func<bool> TryPlay) soundType in soundTypePriorities)
             {
                 Console.WriteLine($"Trying to play sound from type: {soundType.Type} with priority {soundType.Priority}");
                 if (soundType.TryPlay())

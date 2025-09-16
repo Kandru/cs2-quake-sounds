@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Core.Translations;
 using System.Globalization;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace QuakeSounds
@@ -108,46 +107,32 @@ namespace QuakeSounds
             {
                 return;
             }
-
-            if (Config.Data.PlayerLanguages.TryGetValue(steamID.Value, out string? language) &&
-                !string.IsNullOrWhiteSpace(language))
+            // check if the player has a language set
+            if (Config.Data.PlayerLanguages.TryGetValue(steamID.Value, out string? language) && !string.IsNullOrWhiteSpace(language))
             {
-                playerLanguageManager.SetLanguage(new SteamID(steamID.Value), new CultureInfo(language));
+                // set the language for the player
+                playerLanguageManager.SetLanguage(
+                    new SteamID(steamID.Value),
+                    new CultureInfo(language));
             }
         }
 
-        private static bool IsValidCulture(string language)
+        private void SavePlayerLanguage(ulong? steamID, string language)
         {
-            return CultureInfo.GetCultures(CultureTypes.AllCultures)
-                .Any(c => c.Name.Equals(language, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private void SavePlayerLanguage(ulong steamId, string language)
-        {
-            Dictionary<string, string> languagePreferences = LoadLanguagePreferences();
-            languagePreferences[steamId.ToString()] = language;
-
-            string json = JsonSerializer.Serialize(languagePreferences, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(Path.Combine(ModuleDirectory, "lang_preferences.json"), json);
-        }
-
-        private Dictionary<string, string> LoadLanguagePreferences()
-        {
-            string filePath = Path.Combine(ModuleDirectory, "lang_preferences.json");
-            if (!File.Exists(filePath))
+            if (!steamID.HasValue || string.IsNullOrWhiteSpace(language))
             {
-                return [];
+                return;
             }
-
-            try
+            // Try to add or update the player's language
+            if (!Config.Data.PlayerLanguages.TryAdd(steamID.Value, language))
             {
-                string json = File.ReadAllText(filePath);
-                return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? [];
+                Config.Data.PlayerLanguages[steamID.Value] = language;
             }
-            catch
-            {
-                return [];
-            }
+            // write config
+            Config.Update();
+            // set the language for the player
+            playerLanguageManager.SetLanguage(new SteamID(steamID.Value), new CultureInfo(language));
+            DebugPrint($"Saved language for player {steamID} to {language}.");
         }
 
         private string GetLocalizedMessage(string key)

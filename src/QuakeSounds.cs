@@ -194,16 +194,5 @@ namespace QuakeSounds
             _playerKillsInRound[attacker] = kills + 1;
             DebugPrint($"Player {attacker.PlayerName} has {_playerKillsInRound[attacker]} kills.");
         }
-
-        private void ProcessLanguageCommand(CCSPlayerController player, string text)
-        {
-            string? language = text.Split(' ').Skip(1).FirstOrDefault()?.Trim();
-            if (string.IsNullOrEmpty(language) || !IsValidCulture(language))
-            {
-                return;
-            }
-
-            SavePlayerLanguage(player.SteamID, language);
-        }
     }
 }
