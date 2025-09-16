@@ -21,6 +21,7 @@ namespace QuakeSounds
 
         public override void Load(bool hotReload)
         {
+            RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
             RegisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
@@ -42,6 +43,7 @@ namespace QuakeSounds
 
         public override void Unload(bool hotReload)
         {
+            RemoveListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
             DeregisterEventHandler<EventRoundStart>(OnRoundStart);
             DeregisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             DeregisterEventHandler<EventPlayerDeath>(OnPlayerDeath);

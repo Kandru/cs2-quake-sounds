@@ -36,6 +36,11 @@ namespace QuakeSounds
         [JsonPropertyName("player_languages")] public Dictionary<ulong, string> PlayerLanguages { get; set; } = [];
     }
 
+    public class PrecacheConfig
+    {
+        [JsonPropertyName("soundevent_file")] public string SoundEventFile { get; set; } = "soundevents/soundevents_quakesounds.vsndevts";
+    }
+
     public class SoundPriorities
     {
         [JsonPropertyName("special_events")] public int SpecialEvents { get; set; } = 1;
@@ -48,6 +53,7 @@ namespace QuakeSounds
         [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
         [JsonPropertyName("debug")] public bool Debug { get; set; } = false;
         [JsonPropertyName("global")] public GlobalSettings Global { get; set; } = new();
+        [JsonPropertyName("precache")] public PrecacheConfig Precache { get; set; } = new();
         [JsonPropertyName("count_self_kills")] public bool CountSelfKills { get; set; } = false;
         [JsonPropertyName("count_team_kills")] public bool CountTeamKills { get; set; } = false;
         [JsonPropertyName("reset_kills_on_death")] public bool ResetKillsOnDeath { get; set; } = true;
