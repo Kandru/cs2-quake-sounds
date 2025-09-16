@@ -372,7 +372,7 @@ namespace QuakeSounds
             }
             else
             {
-                DebugPrint("Could not determine where to play sound. Skipping.");
+                DebugPrint($"Could not determine where to play sound (unknown config option play_on={Config.PlayOn}). Skipping.");
                 return;
             }
         }
