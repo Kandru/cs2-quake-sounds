@@ -6,7 +6,7 @@
 [![issues - cs2-map-modifier](https://img.shields.io/github/issues/Kandru/cs2-quake-sounds)](https://github.com/Kandru/cs2-quake-sounds/issues)
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=C2AVYKGVP9TRG)
 
-This is a simple Quake Sound plugin for your server. It supports all types of sounds - only a workshop addon is necessesary. You can have sounds for self kills, team kills, knife kills or when players have reached a specific amount of kills. Can be configured to reset after player death and / or after round end. Will reset on map end.
+Add classic Quake-style audio announcements to your CS2 server! This plugin brings back the nostalgic gaming experience with sound effects for kill streaks, special events, and weapon-specific eliminations. Features include customizable kill streak thresholds, multi-language support, player preferences, and flexible sound filtering. Easy to install with an provided workshop addon with a lot of quake sounds.
 
 ## Installation
 
@@ -27,20 +27,34 @@ This plugin automatically creates a readable JSON configuration file. This confi
 {
   "enabled": true,
   "debug": false,
-  "settings_command": "qs",
-  "settings_menu": true,
-  "enabled_during_warmup": true,
-  "play_on": "player",
-  "filter_sounds": "all",
-  "ignore_bots": true,
-  "ignore_world_damage": true,
-  "enable_center_message": true,
-  "center_message_type": "default",
-  "enable_chat_message": true,
+  "global": {
+    "enabled_during_warmup": true,
+    "play_on_entity": "player",
+    "sound_hearable_by": "all",
+    "ignore_bots": true,
+    "ignore_world_damage": true
+  },
+  "precache": {
+    "soundevent_file": "soundevents/soundevents_quakesounds.vsndevts"
+  },
   "count_self_kills": false,
   "count_team_kills": false,
   "reset_kills_on_death": true,
   "reset_kills_on_round_start": true,
+  "commands": {
+    "settings": "qs",
+    "settings_menu": false
+  },
+  "messages": {
+    "enable_center_message": true,
+    "center_message_type": "default",
+    "enable_chat_message": true
+  },
+  "sound_priorities": {
+    "special_events": 1,
+    "weapons": 2,
+    "kill_streak": 3
+  },
   "sounds": {
     "3": {
       "de": "Dreifach-Kill",
@@ -93,7 +107,7 @@ This plugin automatically creates a readable JSON configuration file. This confi
       "_sound": "QuakeSoundsD.Teamkiller"
     },
     "selfkill": {
-      "de": "Selbsttötung",
+      "de": "Selbstt\u00F6tung",
       "en": "Self Kill",
       "_sound": "QuakeSoundsD.Perfect"
     },
@@ -114,11 +128,13 @@ This plugin automatically creates a readable JSON configuration file. This confi
       "_sound": "QuakeSoundsD.Play"
     }
   },
-  "player_muted": [
-    "[U:1:XXXX]"
-  ],
-  "player_languages": {
-    "[U:1:XXXX]": "de"
+  "data": {
+    "player_muted": [
+      123456789
+    ],
+    "player_languages": {
+      "123456789": "de"
+    }
   },
   "ConfigVersion": 1
 }
@@ -132,26 +148,24 @@ Whether this plug-in is enabled or not.
 
 Debug mode. Only necessary during development or testing.
 
-### settings_command
+### global
 
-The command players can use to enable or disable the quake sounds for themself (defaults to !qs). Please do NOT add the "!" yourself. You can change this prefix in the CSSharp core configuration.
+Global settings for this plug-in.
 
-### settings_menu
-
-This toggles the settings menu. If disabled a player can only turn on or off the quake sounds with the setting command. Otherwise a menu will be shown which allows a player to change other settings in future.
-
-### enabled_during_warmup
+#### enabled_during_warmup
 
 Whether or not quake sounds are enabled during warmup.
 
-### play_on
+#### play_on_entity
+
+Determines where the sound will play: either at the player's position or at a fixed world position. Note that using a world position can result in poorly placed sounds on custom maps, making them hard to hear. Playing the sound at the player's position may reveal their location. If you use a full sound path instead of a sound name, the sound will play at maximum volume without directional effects or volume control at the player regardless of this setting, similar to opening a media player and playing the sound.
+
+Possible options:
 
 - player
 - world
 
-Determines where the sound will play: either at the player's position or at a fixed world position. Note that using a world position can result in poorly placed sounds on custom maps, making them hard to hear. Playing the sound at the player's position may reveal their location. If you use a full sound path instead of a sound name, the sound will play at maximum volume without directional effects or volume control.
-
-### filter_sounds
+#### sound_hearable_by
 
 Who is able to listen to sounds. Defaults to "all":
 
@@ -163,29 +177,19 @@ Who is able to listen to sounds. Defaults to "all":
 - victim -> only the victim will hear the sound
 - spectator -> only spectators will hear the sound
 
-### ignore_bots
+#### ignore_bots
 
 Whether or not bots will make quake sounds. If disabled only players will make quake sounds.
 
-### ignore_world_damage
+#### ignore_world_damage
 
 Whether or not to ignore world damage (e.g. by switchting to spectator). Makes sense to leave enabled.
 
-### enable_center_message
+### precache
 
-Whether or not to show a center message.
+#### soundevent_file
 
-### center_message_type
-
-Type of the center message. Can be one of the following:
-
-- default
-- alert
-- html
-
-### enable_chat_message
-
-Whether or not to enable chat messages.
+Precaches the sound event definition file in your (or as per default in my provided) quake sounds workshop add-on. You can use the default `soundevents_addon.vsndevts` but this gets overwritten by the CS2 server IF a workshop map is having the same name. Therefore you SHOULD rename the file (or simply duplicate it like I did) to make sure your sounds are loaded fine!
 
 ### count_self_kills
 
@@ -202,6 +206,38 @@ Whether or not to reset kill streak on player death.
 ### reset_kills_on_round_start
 
 Whether or not to reste kill streak on round start.
+
+### commands
+
+#### settings
+
+The chat command players can type in to open the quakesounds menu (if enabled) or simply toggle the quake sounds for them.
+
+#### settings_menu
+
+Whether or not to show a settings menu instead of simply changing the mute status. Currently set to disabled because there is only one setting option. May change in future.
+
+### messages
+
+#### enable_center_message
+
+Whether or not to show a center message.
+
+#### center_message_type
+
+Type of the center message. Can be one of the following:
+
+- default
+- alert
+- html
+
+#### enable_chat_message
+
+Whether or not to enable chat messages.
+
+### sound_priorities
+
+Only one sound can be played for a player on a specific action. You can set a global priority for each sound type. Lower number means higher priority. Per default special events (like self-kills, teamkills, ..) are the highest priority. Followed by "weapons" in case you want to have a specific sound for a weapon kill and then finally the "normal" kill-streak sounds.
 
 ### sounds
 
@@ -245,11 +281,15 @@ No further settings possible. Will play at 100% sound volume of the sound file u
 }
 ```
 
-### player_muted
+### data
+
+I don't forcing server owners to use MySQL for simple stuff... therefore player choices simply get saved in the config file.
+
+#### player_muted
 
 List of all muted Steam IDs. Players can use *!qs* to mute or unmute themself.
 
-### player_languages
+#### player_languages
 
 List of all players who used *!lang* to set their language. Currently it seems that plug-ins will not get the correct translation for a player. Therefore this plug-in intercepts the *!lang* command and saves the language for the player and loads it each time the player connects. This will ensure the proper translation for a given sound.
 
