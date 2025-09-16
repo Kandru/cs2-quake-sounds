@@ -45,7 +45,7 @@ namespace QuakeSounds.Services
             switch (playOn.ToLower(System.Globalization.CultureInfo.CurrentCulture))
             {
                 case "player":
-                    _debugPrint("Playing quake sound on player.");
+                    _debugPrint($"Playing quake sound on player {player.PlayerName}.");
                     _ = player.EmitSound(sound, filter);
                     break;
                 case "world":
