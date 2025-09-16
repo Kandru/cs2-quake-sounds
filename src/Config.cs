@@ -11,7 +11,7 @@ namespace QuakeSounds
     public class CommandSettings
     {
         [JsonPropertyName("settings")] public string SettingsCommand { get; set; } = "qs";
-        [JsonPropertyName("settings_menu")] public bool SettingsMenu { get; set; } = true;
+        [JsonPropertyName("settings_menu")] public bool SettingsMenu { get; set; } = false;
     }
 
     public class GlobalSettings
