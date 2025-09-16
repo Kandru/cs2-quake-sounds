@@ -14,6 +14,12 @@ namespace QuakeSounds.Services
 
         public void PrintMessage(CCSPlayerController player, Dictionary<string, string> sound, RecipientFilter filter)
         {
+            // Early return if no recipients or if both message types are disabled
+            if (filter.Count == 0 || (!_config.CenterMessage && !_config.ChatMessage))
+            {
+                return;
+            }
+
             foreach (CCSPlayerController recipient in filter)
             {
                 SendMessageToPlayer(recipient, player, sound);

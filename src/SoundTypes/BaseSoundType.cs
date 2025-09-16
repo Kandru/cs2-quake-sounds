@@ -20,6 +20,13 @@ namespace QuakeSounds.SoundTypes
             }
 
             RecipientFilter filter = FilterService.PrepareFilter(attacker, victim, soundConfig.GetValueOrDefault("_filter"));
+
+            // Only proceed if there are players to send to
+            if (filter.Count == 0)
+            {
+                return true; // Sound was "played" but no recipients
+            }
+
             SoundService.PlaySound(attacker, soundName, playOn ?? Config.PlayOn, filter);
             MessageService.PrintMessage(attacker, soundConfig, filter);
             return true;

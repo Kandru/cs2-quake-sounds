@@ -12,7 +12,14 @@ namespace QuakeSounds.Services
 
         public void PlaySound(CCSPlayerController player, string sound, string? playOn, RecipientFilter filter)
         {
-            _debugPrint($"Playing quake sound {sound} for player {player.PlayerName}.");
+            // Early return if no recipients
+            if (filter.Count == 0)
+            {
+                _debugPrint($"No recipients for quake sound {sound} for player {player.PlayerName}.");
+                return;
+            }
+
+            _debugPrint($"Playing quake sound {sound} for player {player.PlayerName} to {filter.Count} recipients.");
 
             if (sound.StartsWith("sounds/"))
             {
@@ -26,7 +33,7 @@ namespace QuakeSounds.Services
 
         private void PlaySoundViaClientCommand(string sound, RecipientFilter filter)
         {
-            _debugPrint("Playing quake sound via client command for all listening players.");
+            _debugPrint($"Playing quake sound via client command for {filter.Count} listening players.");
             foreach (CCSPlayerController player in filter)
             {
                 player.ExecuteClientCommand($"play {sound}");
