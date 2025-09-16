@@ -15,7 +15,7 @@ namespace QuakeSounds
 
     public class GlobalSettings
     {
-        [JsonPropertyName("enabled during warmup")] public bool EnabledDuringWarmup { get; set; } = true;
+        [JsonPropertyName("enabled_during_warmup")] public bool EnabledDuringWarmup { get; set; } = true;
         [JsonPropertyName("play_on_entity")] public string PlayOnEntity { get; set; } = "player";
         [JsonPropertyName("sound_hearable_by")] public string SoundHearableBy { get; set; } = "all";
         [JsonPropertyName("ignore_bots")] public bool IgnoreBots { get; set; } = true;
