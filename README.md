@@ -146,6 +146,9 @@ Whether or not quake sounds are enabled during warmup.
 
 ### play_on
 
+- player
+- world
+
 Determines where the sound will play: either at the player's position or at a fixed world position. Note that using a world position can result in poorly placed sounds on custom maps, making them hard to hear. Playing the sound at the player's position may reveal their location. If you use a full sound path instead of a sound name, the sound will play at maximum volume without directional effects or volume control.
 
 ### filter_sounds

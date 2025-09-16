@@ -370,6 +370,11 @@ namespace QuakeSounds
                 // play sound
                 _ = worldEnt.EmitSound(sound, filter);
             }
+            else
+            {
+                DebugPrint("Could not determine where to play sound. Skipping.");
+                return;
+            }
         }
 
         private void PrintMessage(CCSPlayerController player, Dictionary<string, string> sound, RecipientFilter? filter = null)
