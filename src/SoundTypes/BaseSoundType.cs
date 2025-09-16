@@ -13,8 +13,9 @@ namespace QuakeSounds.SoundTypes
 
         private protected bool PlaySound(CCSPlayerController attacker, CCSPlayerController? victim, string soundKey, string? playOn = null)
         {
-            if (!Config.Sounds.TryGetValue(soundKey, out Dictionary<string, string>? soundConfig) ||
-                !soundConfig.TryGetValue("_sound", out string? soundName))
+            if (!Config.Enabled
+                || !Config.Sounds.TryGetValue(soundKey, out Dictionary<string, string>? soundConfig)
+                || !soundConfig.TryGetValue("_sound", out string? soundName))
             {
                 return false;
             }
