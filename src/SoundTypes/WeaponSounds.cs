@@ -9,7 +9,7 @@ namespace QuakeSounds.SoundTypes
         public bool TryPlayWeaponSound(CCSPlayerController attacker, CCSPlayerController? victim, string weapon)
         {
             string weaponKey = GetWeaponKey(weapon);
-            return TryPlaySoundConfig(attacker, victim, weaponKey);
+            return PlaySound(attacker, victim, weaponKey);
         }
 
         private static string GetWeaponKey(string weapon)

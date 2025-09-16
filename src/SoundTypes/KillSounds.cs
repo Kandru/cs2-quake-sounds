@@ -10,7 +10,7 @@ namespace QuakeSounds.SoundTypes
 
         public bool TryPlayKillCountSound(CCSPlayerController attacker, CCSPlayerController? victim, int killCount)
         {
-            return TryPlaySoundConfig(attacker, victim, killCount.ToString());
+            return PlaySound(attacker, victim, killCount.ToString());
         }
 
         public bool TryPlaySpecialKillSound(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
@@ -26,7 +26,7 @@ namespace QuakeSounds.SoundTypes
 
             foreach ((string? soundKey, bool condition, string? playOn) in specialSounds)
             {
-                if (condition && TryPlaySoundConfig(attacker, victim, soundKey, playOn))
+                if (condition && PlaySound(attacker, victim, soundKey, playOn))
                 {
                     return true;
                 }

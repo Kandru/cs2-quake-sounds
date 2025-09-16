@@ -4,22 +4,14 @@ using QuakeSounds.Services;
 
 namespace QuakeSounds.SoundTypes
 {
-    public abstract class BaseSoundType
+    public abstract class BaseSoundType(PluginConfig config, SoundService soundService, MessageService messageService, FilterService filterService)
     {
-        protected readonly PluginConfig Config;
-        protected readonly SoundService SoundService;
-        protected readonly MessageService MessageService;
-        protected readonly FilterService FilterService;
+        protected readonly PluginConfig Config = config;
+        protected readonly SoundService SoundService = soundService;
+        protected readonly MessageService MessageService = messageService;
+        protected readonly FilterService FilterService = filterService;
 
-        protected BaseSoundType(PluginConfig config, SoundService soundService, MessageService messageService, FilterService filterService)
-        {
-            Config = config;
-            SoundService = soundService;
-            MessageService = messageService;
-            FilterService = filterService;
-        }
-
-        protected bool TryPlaySoundConfig(CCSPlayerController attacker, CCSPlayerController? victim, string soundKey, string? playOn = null)
+        private protected bool PlaySound(CCSPlayerController attacker, CCSPlayerController? victim, string soundKey, string? playOn = null)
         {
             if (!Config.Sounds.TryGetValue(soundKey, out Dictionary<string, string>? soundConfig) ||
                 !soundConfig.TryGetValue("_sound", out string? soundName))
