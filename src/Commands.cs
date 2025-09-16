@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Modules.Menu;
+using Microsoft.Extensions.Localization;
 
 namespace QuakeSounds
 {
@@ -11,33 +12,18 @@ namespace QuakeSounds
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "")]
         public void CommandQuakeSoundSettings(CCSPlayerController? player, CommandInfo command)
         {
-            if (player == null
-                || !player.IsValid)
+            if (player?.IsValid != true)
             {
                 return;
             }
+
             if (Config.SettingsMenu)
             {
-                // close any active menu
-                MenuManager.CloseActiveMenu(player);
-                // create menu to choose sound
-                var menu = new ChatMenu(Localizer["menu.title"]);
-                // check if player is muted
-                if (Config.PlayersMuted.Contains(player.SteamID))
-                {
-                    menu.AddMenuOption(Localizer["menu.unmute"], (_, _) => ToggleMute(player));
-                }
-                else
-                {
-                    // add option to mute
-                    menu.AddMenuOption(Localizer["menu.mute"], (_, _) => ToggleMute(player));
-                }
-                // open menu
-                MenuManager.OpenChatMenu(player, menu);
+                ShowSettingsMenu(player);
             }
             else
             {
-                ToggleMute(player);
+                _ = ToggleMute(player);
             }
         }
 
@@ -45,28 +31,64 @@ namespace QuakeSounds
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY, minArgs: 1, usage: "<command>")]
         public void CommandQuakeSoundAdmin(CCSPlayerController player, CommandInfo command)
         {
-            string subCommand = command.GetArg(1);
-            switch (subCommand.ToLower())
+            string subCommand = command.GetArg(1).ToLower(System.Globalization.CultureInfo.CurrentCulture);
+            string response = ProcessAdminCommand(subCommand);
+            command.ReplyToCommand(response);
+        }
+
+        public void OnLanguageCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player?.IsValid != true)
             {
-                case "reload":
-                    Config.Reload();
-                    command.ReplyToCommand(Localizer["admin.reload"]);
-                    break;
-                case "disable":
-                    Config.Enabled = false;
-                    Config.Update();
-                    command.ReplyToCommand(Localizer["admin.disable"]);
-                    break;
-                case "enable":
-                    Config.Enabled = true;
-                    Config.Update();
-                    command.ReplyToCommand(Localizer["admin.enable"]);
-                    break;
-                default:
-                    command.ReplyToCommand(Localizer["admin.unknown_command"].Value
-                        .Replace("{command}", subCommand));
-                    break;
+                return;
             }
+
+            string text = command.GetCommandString;
+            ProcessLanguageCommand(player, text);
+        }
+
+        private void ShowSettingsMenu(CCSPlayerController player)
+        {
+            MenuManager.CloseActiveMenu(player);
+            ChatMenu menu = new(Localizer["menu.title"]);
+
+            LocalizedString menuText = Config.PlayersMuted.Contains(player.SteamID)
+                ? Localizer["menu.unmute"]
+                : Localizer["menu.mute"];
+
+            _ = menu.AddMenuOption(menuText, (_, _) => ToggleMute(player));
+            MenuManager.OpenChatMenu(player, menu);
+        }
+
+        private string ProcessAdminCommand(string subCommand)
+        {
+            return subCommand switch
+            {
+                "reload" => ReloadConfig(),
+                "disable" => DisablePlugin(),
+                "enable" => EnablePlugin(),
+                _ => Localizer["admin.unknown_command"].Value.Replace("{command}", subCommand)
+            };
+        }
+
+        private string ReloadConfig()
+        {
+            Config.Reload();
+            return Localizer["admin.reload"];
+        }
+
+        private string DisablePlugin()
+        {
+            Config.Enabled = false;
+            Config.Update();
+            return Localizer["admin.disable"];
+        }
+
+        private string EnablePlugin()
+        {
+            Config.Enabled = true;
+            Config.Update();
+            return Localizer["admin.enable"];
         }
     }
 }

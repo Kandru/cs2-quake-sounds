@@ -1,3 +1,4 @@
+using System.Reflection;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 
@@ -15,13 +16,16 @@ namespace QuakeSounds
 
         private static object? GetGameRule(string rule)
         {
-            var ents = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules");
-            foreach (var ent in ents)
+            IEnumerable<CCSGameRulesProxy> ents = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules");
+            foreach (CCSGameRulesProxy ent in ents)
             {
-                var gameRules = ent.GameRules;
-                if (gameRules == null) continue;
+                CCSGameRules? gameRules = ent.GameRules;
+                if (gameRules == null)
+                {
+                    continue;
+                }
 
-                var property = gameRules.GetType().GetProperty(rule);
+                PropertyInfo? property = gameRules.GetType().GetProperty(rule);
                 if (property != null && property.CanRead)
                 {
                     return property.GetValue(gameRules);
