@@ -8,46 +8,47 @@ using System.Text.Json.Serialization;
 
 namespace QuakeSounds
 {
+    public class CommandSettings
+    {
+        [JsonPropertyName("settings")] public string SettingsCommand { get; set; } = "qs";
+        [JsonPropertyName("settings_menu")] public bool SettingsMenu { get; set; } = true;
+    }
+
+    public class GlobalSettings
+    {
+        [JsonPropertyName("enabled during warmup")] public bool EnabledDuringWarmup { get; set; } = true;
+        [JsonPropertyName("play_on_entity")] public string PlayOnEntity { get; set; } = "player";
+        [JsonPropertyName("sound_hearable_by")] public string SoundHearableBy { get; set; } = "all";
+        [JsonPropertyName("ignore_bots")] public bool IgnoreBots { get; set; } = true;
+        [JsonPropertyName("ignore_world_damage")] public bool IgnoreWorldDamage { get; set; } = true;
+    }
+
+    public class MessageSettings
+    {
+        [JsonPropertyName("enable_center_message")] public bool CenterMessage { get; set; } = true;
+        [JsonPropertyName("center_message_type")] public string CenterMessageType { get; set; } = "default";
+        [JsonPropertyName("enable_chat_message")] public bool ChatMessage { get; set; } = true;
+    }
+
+    public class PlayerData
+    {
+        [JsonPropertyName("player_muted")] public List<ulong> PlayerMuted { get; set; } = [];
+        [JsonPropertyName("player_languages")] public Dictionary<ulong, string> PlayerLanguages { get; set; } = [];
+    }
+
     public class PluginConfig : BasePluginConfig
     {
-        // Enabled or disabled
         [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
-        // debug prints
         [JsonPropertyName("debug")] public bool Debug { get; set; } = false;
-        // sound settings command
-        [JsonPropertyName("settings_command")] public string SettingsCommand { get; set; } = "qs";
-        // toggle settings menu
-        [JsonPropertyName("settings_menu")] public bool SettingsMenu { get; set; } = true;
-        // enable during warmup
-        [JsonPropertyName("enabled_during_warmup")] public bool EnabledDuringWarmup { get; set; } = true;
-        // where to play sounds on (player, world)
-        [JsonPropertyName("play_on")] public string PlayOn { get; set; } = "player";
-        // set who can hear the sounds (all, attacker_team, victim_team, involved, attacker, victim, spectator)
-        [JsonPropertyName("filter_sounds")] public string FilterSounds { get; set; } = "all";
-        // ignore bots
-        [JsonPropertyName("ignore_bots")] public bool IgnoreBots { get; set; } = true;
-        // ignore world damage
-        [JsonPropertyName("ignore_world_damage")] public bool IgnoreWorldDamage { get; set; } = true;
-        // enable center message
-        [JsonPropertyName("enable_center_message")] public bool CenterMessage { get; set; } = true;
-        // center message typ (default, alert or html)
-        [JsonPropertyName("center_message_type")] public string CenterMessageType { get; set; } = "default";
-        // enable chat message
-        [JsonPropertyName("enable_chat_message")] public bool ChatMessage { get; set; } = true;
-        // count self kills
+        [JsonPropertyName("global")] public GlobalSettings Global { get; set; } = new();
         [JsonPropertyName("count_self_kills")] public bool CountSelfKills { get; set; } = false;
-        // count team kills
         [JsonPropertyName("count_team_kills")] public bool CountTeamKills { get; set; } = false;
-        // reset kills on death
         [JsonPropertyName("reset_kills_on_death")] public bool ResetKillsOnDeath { get; set; } = true;
-        // reset kills on round start
         [JsonPropertyName("reset_kills_on_round_start")] public bool ResetKillsOnRoundStart { get; set; } = true;
-        // sounds dict (language, string to match, sound path)
+        [JsonPropertyName("commands")] public CommandSettings Commands { get; set; } = new();
+        [JsonPropertyName("messages")] public MessageSettings Messages { get; set; } = new();
         [JsonPropertyName("sounds")] public Dictionary<string, Dictionary<string, string>> Sounds { get; set; } = [];
-        // muted players
-        [JsonPropertyName("players_muted")] public List<ulong> PlayersMuted { get; set; } = [];
-        // player languages
-        [JsonPropertyName("players_languages")] public Dictionary<ulong, string> PlayerLanguages { get; set; } = [];
+        [JsonPropertyName("data")] public PlayerData Data { get; set; } = new();
     }
 
     public partial class QuakeSounds : BasePlugin, IPluginConfig<PluginConfig>
@@ -58,7 +59,7 @@ namespace QuakeSounds
         public void OnConfigParsed(PluginConfig config)
         {
             Config = config;
-            // sort Config.Sounds and sub dictionaries by key
+            // sort Config.Sound.Sounds and sub dictionaries by key
             Config.Sounds = Config.Sounds
                 .OrderBy(static x => int.TryParse(x.Key, out int key) ? key : int.MaxValue)
                 .ToDictionary(static x => x.Key, static x => x.Value
@@ -71,16 +72,16 @@ namespace QuakeSounds
 
         private bool ToggleMute(CCSPlayerController player)
         {
-            if (Config.PlayersMuted.Contains(player.SteamID))
+            if (Config.Data.PlayerMuted.Contains(player.SteamID))
             {
-                _ = Config.PlayersMuted.Remove(player.SteamID);
+                _ = Config.Data.PlayerMuted.Remove(player.SteamID);
                 Config.Update();
                 player.PrintToChat(Localizer["sounds.unmuted"]);
                 return false;
             }
             else
             {
-                Config.PlayersMuted.Add(player.SteamID);
+                Config.Data.PlayerMuted.Add(player.SteamID);
                 Config.Update();
                 player.PrintToChat(Localizer["sounds.muted"]);
                 return true;
@@ -94,7 +95,7 @@ namespace QuakeSounds
                 return;
             }
 
-            if (Config.PlayerLanguages.TryGetValue(steamID.Value, out string? language) &&
+            if (Config.Data.PlayerLanguages.TryGetValue(steamID.Value, out string? language) &&
                 !string.IsNullOrWhiteSpace(language))
             {
                 playerLanguageManager.SetLanguage(new SteamID(steamID.Value), new CultureInfo(language));

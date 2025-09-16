@@ -15,7 +15,7 @@ namespace QuakeSounds.Services
         public void PrintMessage(CCSPlayerController player, Dictionary<string, string> sound, RecipientFilter filter)
         {
             // Early return if no recipients or if both message types are disabled
-            if (filter.Count == 0 || (!_config.CenterMessage && !_config.ChatMessage))
+            if (filter.Count == 0 || (!_config.Messages.CenterMessage && !_config.Messages.ChatMessage))
             {
                 return;
             }
@@ -51,14 +51,14 @@ namespace QuakeSounds.Services
 
         private void SendCenterMessage(CCSPlayerController recipient, CCSPlayerController player, string message)
         {
-            if (!_config.CenterMessage)
+            if (!_config.Messages.CenterMessage)
             {
                 return;
             }
 
             string centerMessage = GetFormattedMessage(recipient, player, message, "center.msg");
 
-            switch (_config.CenterMessageType.ToLower(CultureInfo.CurrentCulture))
+            switch (_config.Messages.CenterMessageType.ToLower(CultureInfo.CurrentCulture))
             {
                 case "default":
                     recipient.PrintToCenter(centerMessage);
@@ -76,7 +76,7 @@ namespace QuakeSounds.Services
 
         private void SendChatMessage(CCSPlayerController recipient, CCSPlayerController player, string message)
         {
-            if (!_config.ChatMessage)
+            if (!_config.Messages.ChatMessage)
             {
                 return;
             }

@@ -27,7 +27,7 @@ namespace QuakeSounds
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             RegisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
-            AddCommand(Config.SettingsCommand, "QuakeSounds user settings", CommandQuakeSoundSettings);
+            AddCommand(Config.Commands.SettingsCommand, "QuakeSounds user settings", CommandQuakeSoundSettings);
             InitializeServices();
             if (hotReload)
             {
@@ -48,7 +48,7 @@ namespace QuakeSounds
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             DeregisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
-            RemoveCommand(Config.SettingsCommand, CommandQuakeSoundSettings);
+            RemoveCommand(Config.Commands.SettingsCommand, CommandQuakeSoundSettings);
             DestroyServices();
         }
 
@@ -149,13 +149,13 @@ namespace QuakeSounds
 
         private bool ShouldProcessDeath(EventPlayerDeath @event)
         {
-            if (!Config.EnabledDuringWarmup && (bool)GetGameRule("WarmupPeriod")!)
+            if (!Config.Global.EnabledDuringWarmup && (bool)GetGameRule("WarmupPeriod")!)
             {
                 DebugPrint("Ignoring during warmup.");
                 return false;
             }
 
-            if (@event.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) && Config.IgnoreWorldDamage)
+            if (@event.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) && Config.Global.IgnoreWorldDamage)
             {
                 DebugPrint("Ignoring world damage.");
                 return false;
@@ -166,7 +166,7 @@ namespace QuakeSounds
 
         private bool IsValidAttacker(CCSPlayerController? attacker)
         {
-            return attacker?.IsValid == true && (!attacker.IsBot || !Config.IgnoreBots);
+            return attacker?.IsValid == true && (!attacker.IsBot || !Config.Global.IgnoreBots);
         }
 
         private void ProcessKill(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath @event)

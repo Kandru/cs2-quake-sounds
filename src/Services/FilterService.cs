@@ -12,7 +12,7 @@ namespace QuakeSounds.Services
         public RecipientFilter PrepareFilter(CCSPlayerController? attacker, CCSPlayerController? victim, string? soundFilter = null)
         {
             RecipientFilter filter = [];
-            string filterType = soundFilter ?? _config.FilterSounds;
+            string filterType = soundFilter ?? _config.Global.SoundHearableBy;
 
             foreach (CCSPlayerController? player in GetEligiblePlayers().Where(p => MatchesFilter(p, attacker, victim, filterType)))
             {
@@ -26,8 +26,8 @@ namespace QuakeSounds.Services
         private IEnumerable<CCSPlayerController> GetEligiblePlayers()
         {
             return Utilities.GetPlayers().Where(p =>
-                (!p.IsBot || !_config.IgnoreBots) &&
-                !_config.PlayersMuted.Contains(p.SteamID));
+                (!p.IsBot || !_config.Global.IgnoreBots) &&
+                !_config.Data.PlayerMuted.Contains(p.SteamID));
         }
 
         private static bool MatchesFilter(CCSPlayerController player, CCSPlayerController? attacker, CCSPlayerController? victim, string filterType)

@@ -27,7 +27,7 @@ namespace QuakeSounds.SoundTypes
                 return true; // Sound was "played" but no recipients
             }
 
-            SoundService.PlaySound(attacker, soundName, playOn ?? Config.PlayOn, filter);
+            SoundService.PlaySound(attacker, soundName, playOn ?? Config.Global.PlayOnEntity, filter);
             MessageService.PrintMessage(attacker, soundConfig, filter);
             return true;
         }

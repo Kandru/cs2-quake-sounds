@@ -19,7 +19,7 @@ namespace QuakeSounds.SoundTypes
 
             foreach (CCSPlayerController? player in Utilities.GetPlayers().Where(static p => !p.IsBot))
             {
-                SoundService.PlaySound(player, soundName, Config.PlayOn, filter);
+                SoundService.PlaySound(player, soundName, Config.Global.PlayOnEntity, filter);
             }
         }
     }

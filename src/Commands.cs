@@ -17,7 +17,7 @@ namespace QuakeSounds
                 return;
             }
 
-            if (Config.SettingsMenu)
+            if (Config.Commands.SettingsMenu)
             {
                 ShowSettingsMenu(player);
             }
@@ -52,7 +52,7 @@ namespace QuakeSounds
             MenuManager.CloseActiveMenu(player);
             ChatMenu menu = new(Localizer["menu.title"]);
 
-            LocalizedString menuText = Config.PlayersMuted.Contains(player.SteamID)
+            LocalizedString menuText = Config.Data.PlayerMuted.Contains(player.SteamID)
                 ? Localizer["menu.unmute"]
                 : Localizer["menu.mute"];
 

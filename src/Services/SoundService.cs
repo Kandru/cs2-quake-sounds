@@ -27,7 +27,7 @@ namespace QuakeSounds.Services
             }
             else
             {
-                PlaySoundViaEmit(player, sound, playOn ?? _config.PlayOn, filter);
+                PlaySoundViaEmit(player, sound, playOn ?? _config.Global.PlayOnEntity, filter);
             }
         }
 
@@ -52,7 +52,7 @@ namespace QuakeSounds.Services
                     PlaySoundOnWorld(sound, filter);
                     break;
                 default:
-                    _debugPrint($"Could not determine where to play sound (unknown config option play_on={_config.PlayOn}). Skipping.");
+                    _debugPrint($"Could not determine where to play sound (unknown config option play_on={_config.Global.PlayOnEntity}). Skipping.");
                     break;
             }
         }
