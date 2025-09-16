@@ -241,7 +241,7 @@ Only one sound can be played for a player on a specific action. You can set a gl
 
 ### sounds
 
-List of all sounds. The Key is either the amount of kills, a weapon name or one of the following special keys:
+List of all sounds. The Key is either the amount of kills, a weapon name or one of the defined special keys:
 
 - firstblood
 - headshot
@@ -253,7 +253,7 @@ List of all sounds. The Key is either the amount of kills, a weapon name or one 
 
 All weapons can make a sound on kill, e.g. HE-Grenade (weapon_hegrenade). Just use *weapon_<name>* as a key.
 
-All sounds will contain a list of at least two entries. One is the *_sound* file name or path. If it is a file name you will need a Workshop Addon where these file names are defined. If you use a path, e.g. *sounds/cs2/quakesounds/default/haha.vsnd* you don't need a Workshop Addon. However the player must have the given file in his game files somewhere.
+All sounds **MUST** contain a list of at least two entries. One is the *_sound* file name or path. If it is a file name you will need a Workshop Addon where these file names are defined. If you use a path, e.g. *sounds/cs2/quakesounds/default/haha.vsnd* you don't need a Workshop Addon. However the player must have the given file in his game files somewhere.
 
 #### Example with Workshop Addon Soundevent name
 
