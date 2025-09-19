@@ -72,20 +72,44 @@ namespace QuakeSounds
 
         public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
         {
-            if (!ShouldProcessDeath(@event))
+            if (!Config.Global.EnabledDuringWarmup && (bool)GetGameRule("WarmupPeriod")!)
             {
+                DebugPrint("Ignoring during warmup.");
                 return HookResult.Continue;
             }
 
-            CCSPlayerController? attacker = @event.Attacker;
+            // check victim
             CCSPlayerController? victim = @event.Userid;
-
-            if (!IsValidAttacker(attacker))
+            if (victim == null
+                || victim.IsValid != true
+                || (victim.IsBot && Config.Global.IgnoreBots))
             {
                 return HookResult.Continue;
             }
 
-            ProcessKill(attacker!, victim, @event);
+            // reset kill count if victim exists in dictionary
+            if (_playerKillsInRound.ContainsKey(victim))
+            {
+                _playerKillsInRound[victim] = 0;
+            }
+
+            if (@event.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) && Config.Global.IgnoreWorldDamage)
+            {
+                DebugPrint("Ignoring world damage.");
+                return HookResult.Continue;
+            }
+
+            // check attacker
+            CCSPlayerController? attacker = @event.Attacker;
+            if (attacker == null
+                || attacker.IsValid != true
+                || (attacker.IsBot && Config.Global.IgnoreBots))
+            {
+                return HookResult.Continue;
+            }
+
+            // process possible kill sound
+            ProcessKill(attacker, victim, @event);
             return HookResult.Continue;
         }
 
@@ -147,28 +171,6 @@ namespace QuakeSounds
         {
             _soundManager?.PlayRoundSound("freeze_end");
             return HookResult.Continue;
-        }
-
-        private bool ShouldProcessDeath(EventPlayerDeath @event)
-        {
-            if (!Config.Global.EnabledDuringWarmup && (bool)GetGameRule("WarmupPeriod")!)
-            {
-                DebugPrint("Ignoring during warmup.");
-                return false;
-            }
-
-            if (@event.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) && Config.Global.IgnoreWorldDamage)
-            {
-                DebugPrint("Ignoring world damage.");
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool IsValidAttacker(CCSPlayerController? attacker)
-        {
-            return attacker?.IsValid == true && (!attacker.IsBot || !Config.Global.IgnoreBots);
         }
 
         private void ProcessKill(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath @event)
