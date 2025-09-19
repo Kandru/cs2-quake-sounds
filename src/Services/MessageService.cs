@@ -20,7 +20,7 @@ namespace QuakeSounds.Services
                 return;
             }
 
-            foreach (CCSPlayerController recipient in filter)
+            foreach (CCSPlayerController recipient in filter.Where(p => !p.IsBot && !p.IsHLTV))
             {
                 SendMessageToPlayer(recipient, player, sound);
             }
