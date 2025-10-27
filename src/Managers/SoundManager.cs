@@ -45,7 +45,7 @@ namespace QuakeSounds.Managers
 
         public void PlayBombSound(string soundKey)
         {
-            _bombSounds.PlayBombSounds(soundKey);
+            _bombSounds.PlayBombSound(soundKey);
         }
     }
 }

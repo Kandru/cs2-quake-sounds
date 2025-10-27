@@ -9,7 +9,7 @@ namespace QuakeSounds.SoundTypes
     {
         public bool TryToPlay(string soundKey)
         {
-            if (!Config.Sounds.TryGetValue(soundKey, out Dictionary<string, string>? soundConfig) ||
+            if (!Config.Sounds.TryGetValue($"round_{soundKey}", out Dictionary<string, string>? soundConfig) ||
                 !soundConfig.TryGetValue("_sound", out string? soundName))
             {
                 return false;

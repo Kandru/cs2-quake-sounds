@@ -25,7 +25,7 @@ namespace QuakeSounds.SoundTypes
             return true;
         }
 
-        public void PlayBombSounds(string soundKey)
+        public void PlayBombSound(string soundKey)
         {
             _ = TryToPlay(soundKey);
         }

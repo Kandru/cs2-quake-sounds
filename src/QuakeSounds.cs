@@ -212,14 +212,14 @@ namespace QuakeSounds
         public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
         {
             _playerKillsInRound.Clear();
-            _soundManager?.PlayRoundSound("round_start");
+            _soundManager?.PlayRoundSound("start");
             return HookResult.Continue;
         }
 
         public HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
         {
             _bombExplosionTimer = 0;
-            _soundManager?.PlayRoundSound("round_end");
+            _soundManager?.PlayRoundSound("end");
             return HookResult.Continue;
         }
 
