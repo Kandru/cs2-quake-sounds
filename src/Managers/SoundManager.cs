@@ -11,6 +11,7 @@ namespace QuakeSounds.Managers
         private readonly SpecialEventSounds _specialEventSounds = new(config, soundService, messageService, filterService, playerKillsInRound);
         private readonly WeaponSounds _weaponSounds = new(config, soundService, messageService, filterService);
         private readonly RoundSounds _roundSounds = new(config, soundService, messageService, filterService);
+        private readonly BombSounds _bombSounds = new(config, soundService, messageService, filterService);
         private readonly Dictionary<CCSPlayerController, int> _playerKillsInRound = playerKillsInRound;
 
         public void PlayKillSound(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
@@ -30,7 +31,6 @@ namespace QuakeSounds.Managers
             // Try to play sounds in priority order
             foreach ((string Type, int Priority, Func<bool> TryPlay) soundType in soundTypePriorities)
             {
-                Console.WriteLine($"Trying to play sound from type: {soundType.Type} with priority {soundType.Priority}");
                 if (soundType.TryPlay())
                 {
                     return;
@@ -41,6 +41,11 @@ namespace QuakeSounds.Managers
         public void PlayRoundSound(string soundKey)
         {
             _roundSounds.PlayRoundSound(soundKey);
+        }
+
+        public void PlayBombSound(string soundKey)
+        {
+            _bombSounds.PlayBombSounds(soundKey);
         }
     }
 }

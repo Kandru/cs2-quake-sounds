@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Events;
 using QuakeSounds.Services;
 using QuakeSounds.Managers;
@@ -18,15 +19,20 @@ namespace QuakeSounds
         private MessageService? _messageService;
         private FilterService? _filterService;
         private SoundManager? _soundManager;
+        private int _bombExplosionTimer = 0;
 
         public override void Load(bool hotReload)
         {
             RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
+            RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
             RegisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             RegisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
+            RegisterEventHandler<EventBombPlanted>(OnBombPlanted);
+            RegisterEventHandler<EventBombDefused>(OnBombDefused);
+            RegisterEventHandler<EventBombExploded>(OnBombExploded);
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
             AddCommand(Config.Commands.SettingsCommand, "QuakeSounds user settings", CommandQuakeSoundSettings);
             InitializeServices();
@@ -45,10 +51,14 @@ namespace QuakeSounds
         {
             RemoveListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
             DeregisterEventHandler<EventRoundStart>(OnRoundStart);
+            DeregisterEventHandler<EventRoundEnd>(OnRoundEnd);
             DeregisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             DeregisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             DeregisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
+            DeregisterEventHandler<EventBombPlanted>(OnBombPlanted);
+            DeregisterEventHandler<EventBombDefused>(OnBombDefused);
+            DeregisterEventHandler<EventBombExploded>(OnBombExploded);
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
             RemoveCommand(Config.Commands.SettingsCommand, CommandQuakeSoundSettings);
             DestroyServices();
@@ -154,6 +164,45 @@ namespace QuakeSounds
             return HookResult.Continue;
         }
 
+        private HookResult OnBombPlanted(EventBombPlanted @event, GameEventInfo info)
+        {
+            ConVar? mpC4Timer = ConVar.Find("mp_c4timer");
+            if (mpC4Timer == null)
+            {
+                return HookResult.Continue;
+            }
+            _bombExplosionTimer = (int)Server.CurrentTime + mpC4Timer.GetPrimitiveValue<int>() + 1;
+            AddTimer(1.0f, BombSoundHandler);
+            _soundManager?.PlayBombSound("planted");
+            return HookResult.Continue;
+        }
+
+        private HookResult OnBombDefused(EventBombDefused @event, GameEventInfo info)
+        {
+            _bombExplosionTimer = 0;
+            _soundManager?.PlayBombSound("defused");
+            return HookResult.Continue;
+        }
+
+        private HookResult OnBombExploded(EventBombExploded @event, GameEventInfo info)
+        {
+            _bombExplosionTimer = 0;
+            _soundManager?.PlayBombSound("exploded");
+            return HookResult.Continue;
+        }
+
+        private void BombSoundHandler()
+        {
+            int secondsLeft = _bombExplosionTimer - (int)Server.CurrentTime;
+            if (_bombExplosionTimer == 0
+                || secondsLeft <= 0)
+            {
+                return;
+            }
+            _soundManager?.PlayBombSound(secondsLeft.ToString());
+            AddTimer(1.0f, BombSoundHandler);
+        }
+
         private void OnMapStart(string mapName)
         {
             // reset player kills
@@ -164,6 +213,13 @@ namespace QuakeSounds
         {
             _playerKillsInRound.Clear();
             _soundManager?.PlayRoundSound("round_start");
+            return HookResult.Continue;
+        }
+
+        public HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
+        {
+            _bombExplosionTimer = 0;
+            _soundManager?.PlayRoundSound("round_end");
             return HookResult.Continue;
         }
 

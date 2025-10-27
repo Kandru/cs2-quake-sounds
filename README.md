@@ -126,6 +126,42 @@ This plugin automatically creates a readable JSON configuration file. This confi
     },
     "round_freeze_end": {
       "_sound": "QuakeSoundsD.Play"
+    },
+    "bomb_30": {
+    "_sound": "BombSounds.Sec30"
+    },
+    "bomb_20": {
+    "_sound": "BombSounds.Sec20"
+    },
+    "bomb_10": {
+    "_sound": "BombSounds.Sec10"
+    },
+    "bomb_9": {
+    "_sound": "BombSounds.Sec9"
+    },
+    "bomb_8": {
+    "_sound": "BombSounds.Sec8"
+    },
+    "bomb_7": {
+    "_sound": "BombSounds.Sec7"
+    },
+    "bomb_6": {
+    "_sound": "BombSounds.Sec6"
+    },
+    "bomb_5": {
+    "_sound": "BombSounds.Sec5"
+    },
+    "bomb_4": {
+    "_sound": "BombSounds.Sec4"
+    },
+    "bomb_3": {
+    "_sound": "BombSounds.Sec3"
+    },
+    "bomb_2": {
+    "_sound": "BombSounds.Sec2"
+    },
+    "bomb_1": {
+    "_sound": "BombSounds.Sec1"
     }
   },
   "data": {
@@ -243,12 +279,17 @@ Only one sound can be played for a player on a specific action. You can set a gl
 
 List of all sounds. The Key is either the amount of kills, a weapon name or one of the defined special keys:
 
+- bomb_planted
+- bomb_<SECONDS_UNTIL_EXPLODING>
+- bomb_defused
+- bomb_exploded
 - firstblood
 - headshot
 - knifekill
 - selfkill
 - teamkill
 - round_start
+- round_end
 - round_freeze_end
 
 All weapons can make a sound on kill, e.g. HE-Grenade (weapon_hegrenade). Just use *weapon_<name>* as a key.
