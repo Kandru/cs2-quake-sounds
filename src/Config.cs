@@ -113,7 +113,7 @@ namespace QuakeSounds
                 // set the language for the player
                 playerLanguageManager.SetLanguage(
                     new SteamID(steamID.Value),
-                    new CultureInfo(language));
+                    GetCultureOrInvariant(language));
             }
         }
 
@@ -131,13 +131,31 @@ namespace QuakeSounds
             // write config
             Config.Update();
             // set the language for the player
-            playerLanguageManager.SetLanguage(new SteamID(steamID.Value), new CultureInfo(language));
+            playerLanguageManager.SetLanguage(new SteamID(steamID.Value), GetCultureOrInvariant(language));
             DebugPrint($"Saved language for player {steamID} to {language}.");
         }
 
         private string GetLocalizedMessage(string key)
         {
             return Localizer[key].Value;
+        }
+
+        private static CultureInfo GetCultureOrInvariant(string language)
+        {
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                return CultureInfo.InvariantCulture;
+            }
+
+            try
+            {
+                return new CultureInfo(language);
+            }
+            catch (CultureNotFoundException)
+            {
+                Console.WriteLine($"[QuakeSounds] Culture '{language}' not available, using default (invariant).");
+                return CultureInfo.InvariantCulture;
+            }
         }
     }
 }
