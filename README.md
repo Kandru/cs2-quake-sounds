@@ -1,3 +1,6 @@
+> [!CAUTION]
+> Please follow the installation guide thoroughly and make sure to edit your configuration before using this plug-in. It will NOT have sounds until you add some in the configuration file by yourself. Examples are below!
+
 # CounterstrikeSharp - Quake Sounds
 
 [![UpdateManager Compatible](https://img.shields.io/badge/CS2-UpdateManager-darkgreen)](https://github.com/Kandru/cs2-update-manager/)
@@ -6,22 +9,24 @@
 [![issues - cs2-map-modifier](https://img.shields.io/github/issues/Kandru/cs2-quake-sounds)](https://github.com/Kandru/cs2-quake-sounds/issues)
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=C2AVYKGVP9TRG)
 
-Add classic Quake-style audio announcements to your CS2 server! This plugin brings back the nostalgic gaming experience with sound effects for kill streaks, special events, and weapon-specific eliminations. Features include customizable kill streak thresholds, multi-language support, player preferences, and flexible sound filtering. Easy to install with an provided workshop addon with a lot of quake sounds.
+Bring the classic Quake announcer experience to CS2! This plugin adds customizable sound effects for kill streaks, headshots, and other special events. It supports multiple languages, per-player settings, and flexible sound configuration.
 
 ## Installation
 
-1. Download and extract the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-quake-sounds/releases/).
-2. Move the "QuakeSounds" folder to the `/addons/counterstrikesharp/plugins/` directory.
-3. Download and install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager)
-4. Add at least one Workshop Addon with Quake Sounds to the configuration of the MultiAddonManager. I provide the following for use: https://steamcommunity.com/sharedfiles/filedetails/?id=3461824328
-5. Restart the server.
+1.  **Download**: Get the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-quake-sounds/releases/).
+2.  **Install Plugin**: Extract the `QuakeSounds` folder into your server's `/addons/counterstrikesharp/plugins/` directory.
+3.  **Install Dependencies**: Download and install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager). This is required to ensure players download the sound files.
+4.  **Add Sounds**: Configure MultiAddonManager to include a Quake Sounds workshop addon. We recommend using this one: [Steam Workshop ID 3461824328](https://steamcommunity.com/sharedfiles/filedetails/?id=3461824328).
+5.  **Restart**: Restart your server to load the plugin and addon manager.
+6.  **Configure**: Open `/addons/counterstrikesharp/configs/plugins/QuakeSounds/QuakeSounds.json` and add your desired sounds. **Note:** The plugin comes with no sounds enabled by default!
 
-Updating is even easier: simply overwrite all plugin files and they will be reloaded automatically. To automate updates please use our [CS2 Update Manager](https://github.com/Kandru/cs2-update-manager/).
-
+*Tip: For automatic updates, use our [CS2 Update Manager](https://github.com/Kandru/cs2-update-manager/).*
 
 ## Configuration
 
-This plugin automatically creates a readable JSON configuration file. This configuration file can be found in `/addons/counterstrikesharp/configs/plugins/QuakeSounds/QuakeSounds.json`.
+The configuration file is located at `/addons/counterstrikesharp/configs/plugins/QuakeSounds/QuakeSounds.json`.
+
+### Example Configuration
 
 ```json
 {
@@ -176,396 +181,84 @@ This plugin automatically creates a readable JSON configuration file. This confi
 }
 ```
 
-### enabled
+### Configuration Guide
 
-Whether this plug-in is enabled or not.
+#### Global Settings
+*   **`global`**: Controls general behavior.
+    *   `play_on_entity`: "player" (sound follows player) or "world" (fixed position).
+    *   `sound_hearable_by`: Who hears the sound ("all", "attacker", "victim", "spectator", etc.).
+*   **`precache`**: Points to the sound event file in your workshop addon. **Important:** If you use a custom addon, ensure this matches the file inside the addon.
 
-### debug
+#### Defining Sounds (`sounds`)
+This is the core of the configuration. You can map sounds to:
+*   **Kill Streaks**: Use the number of kills as the key (e.g., `"3"`, `"5"`).
+*   **Special Events**: Use event names like `"headshot"`, `"firstblood"`, `"knifekill"`, `"round_start"`, `"bomb_planted"`.
+*   **Weapons**: Use `"weapon_<name>"` (e.g., `"weapon_hegrenade"`) to play sounds for specific weapon kills.
 
-Debug mode. Only necessary during development or testing.
+**Sound Entry Format:**
+Each sound entry requires:
+1.  **Translations**: Text to display (e.g., `"en": "Headshot"`).
+2.  **`_sound`**: The sound to play.
+    *   **Option A (Recommended):** Use a SoundEvent name (e.g., `"QuakeSoundsD.Headshot"`). These are defined in the workshop addon, are positional, and respect user volume settings.
+    *   **Option B:** Use a direct file path (e.g., `"sounds/mysounds/headshot.vsnd"`). These play at full volume and are not positional.
+3.  **`_filter`** (Optional): Override who hears this specific sound (e.g., `"attacker"`).
 
-### global
-
-Global settings for this plug-in.
-
-#### enabled_during_warmup
-
-Whether or not quake sounds are enabled during warmup.
-
-#### play_on_entity
-
-Determines where the sound will play: either at the player's position or at a fixed world position. Note that using a world position can result in poorly placed sounds on custom maps, making them hard to hear. Playing the sound at the player's position may reveal their location. If you use a full sound path instead of a sound name, the sound will play at maximum volume without directional effects or volume control at the player regardless of this setting, similar to opening a media player and playing the sound.
-
-Possible options:
-
-- player
-- world
-
-#### sound_hearable_by
-
-Who is able to listen to sounds. Defaults to "all":
-
-- all -> everyone will hear the sound
-- attacker_team -> everyone in the attacker team will hear the sound
-- victim_team -> everyone in the victim team will hear the sound
-- involved -> both attacker and victim will hear the sound
-- attacker -> only the attacker will hear the sound
-- victim -> only the victim will hear the sound
-- spectator -> only spectators will hear the sound
-
-#### ignore_bots
-
-Whether or not bots will make quake sounds. If disabled only players will make quake sounds.
-
-#### ignore_world_damage
-
-Whether or not to ignore world damage (e.g. by switchting to spectator). Makes sense to leave enabled.
-
-### precache
-
-#### soundevent_file
-
-Precaches the sound event definition file in your (or as per default in my provided) quake sounds workshop add-on. You can use the default `soundevents_addon.vsndevts` but this gets overwritten by the CS2 server IF a workshop map is having the same name. Therefore you SHOULD rename the file (or simply duplicate it like I did) to make sure your sounds are loaded fine!
-
-### count_self_kills
-
-Whether or not to count self kills.
-
-### count_team_kills
-
-Whether or not to count team kills.
-
-### reset_kills_on_death
-
-Whether or not to reset kill streak on player death.
-
-### reset_kills_on_round_start
-
-Whether or not to reste kill streak on round start.
-
-### commands
-
-#### settings
-
-The chat command players can type in to open the quakesounds menu (if enabled) or simply toggle the quake sounds for them.
-
-#### settings_menu
-
-Whether or not to show a settings menu instead of simply changing the mute status. Currently set to disabled because there is only one setting option. May change in future.
-
-### messages
-
-#### enable_center_message
-
-Whether or not to show a center message.
-
-#### center_message_type
-
-Type of the center message. Can be one of the following:
-
-- default
-- alert
-- html
-
-#### enable_chat_message
-
-Whether or not to enable chat messages.
-
-### sound_priorities
-
-Only one sound can be played for a player on a specific action. You can set a global priority for each sound type. Lower number means higher priority. Per default special events (like self-kills, teamkills, ..) are the highest priority. Followed by "weapons" in case you want to have a specific sound for a weapon kill and then finally the "normal" kill-streak sounds.
-
-### sounds
-
-List of all sounds. The Key is either the amount of kills, a weapon name or one of the defined special keys:
-
-- bomb_planted
-- bomb_<SECONDS_UNTIL_EXPLODING>
-- bomb_defused
-- bomb_exploded
-- firstblood
-- headshot
-- knifekill
-- selfkill
-- teamkill
-- round_start
-- round_end
-- round_freeze_end
-
-All weapons can make a sound on kill, e.g. HE-Grenade (weapon_hegrenade). Just use *weapon_<name>* as a key.
-
-All sounds **MUST** contain a list of at least two entries. One is the *_sound* file name or path. If it is a file name you will need a Workshop Addon where these file names are defined. If you use a path, e.g. *sounds/cs2/quakesounds/default/haha.vsnd* you don't need a Workshop Addon. However the player must have the given file in his game files somewhere.
-
-#### Example with Workshop Addon Soundevent name
-
-All settings done in the Soundevent file for this specific sound name apply (e.g. Volume, sound distance, pitch, ...). Other players will hear it because the sound is positional. Players can change the volume via ingame settings.
-
-```json
-"headshot": {
-  "de": "Kopfschuss",
-  "en": "Headshot",
-  "_sound": "QuakeSoundsD.Headshot",
-  "_filter": "all" <-- optional to set players that can hear the sound. Can either be set globally (check config above or get overriden per sound)
-}
-```
-
-#### Example with Workshop Addon sound path
-
-No further settings possible. Will play at 100% sound volume of the sound file used. Sound is non-positional. Players cannot change the volume via ingame settings.
-
-```json
-"headshot": {
-  "de": "Kopfschuss",
-  "en": "Headshot",
-  "_sound": "sounds/cs2/quakesounds/default/headshot.vsnd",
-  "_filter": "all" <-- optional to set players that can hear the sound. Can either be set globally (check config above or get overriden per sound)
-}
-```
-
-### data
-
-I don't forcing server owners to use MySQL for simple stuff... therefore player choices simply get saved in the config file.
-
-#### player_muted
-
-List of all muted Steam IDs. Players can use *!qs* to mute or unmute themself.
-
-#### player_languages
-
-List of all players who used *!lang* to set their language. Currently it seems that plug-ins will not get the correct translation for a player. Therefore this plug-in intercepts the *!lang* command and saves the language for the player and loads it each time the player connects. This will ensure the proper translation for a given sound.
+#### Messages & Commands
+*   **`messages`**: Toggle chat and center screen announcements.
+*   **`commands`**: Customize the command to open the menu (default: `qs`).
 
 ## Commands
 
-### quakesounds (Server Console Only)
+### Player Commands
+*   `!qs` (or configured command): Open the settings menu to toggle sounds or mute specific types.
+*   `!lang <language>`: Set your preferred language for announcements.
 
-Ability to run sub-commands:
+### Admin Commands (Console)
+*   `quakesounds reload`: Reload the configuration.
+*   `quakesounds disable`: Globally disable sounds.
+*   `quakesounds enable`: Globally enable sounds.
 
-```
-quakesounds reload
-quakesounds disable
-quakesounds enable
-```
+## Available Sounds (Workshop Addon)
 
-#### reload
+If you use the recommended Workshop Addon (ID: `3461824328`), you can use these sound keys in your config:
 
-Reloads the configuration.
+<details>
+<summary>Click to view Male Sounds</summary>
 
-#### disable
+`QuakeSoundsD.Assassin`, `QuakeSoundsD.Bullseye`, `QuakeSoundsD.Comboking`, `QuakeSoundsD.Combowhore`, `QuakeSoundsD.Dominating`, `QuakeSoundsD.Doublekill`, `QuakeSoundsD.Eagleeye`, `QuakeSoundsD.Excellent`, `QuakeSoundsD.Firstblood`, `QuakeSoundsD.Flawless`, `QuakeSoundsD.Godlike`, `QuakeSoundsD.Haha`, `QuakeSoundsD.Hattrick`, `QuakeSoundsD.Headhunter`, `QuakeSoundsD.Headshot`, `QuakeSoundsD.Holyshit`, `QuakeSoundsD.Humiliating`, `QuakeSoundsD.Humiliation`, `QuakeSoundsD.Impressive`, `QuakeSoundsD.Killingmachine`, `QuakeSoundsD.Killingspree`, `QuakeSoundsD.Ludicrouskill`, `QuakeSoundsD.Maniac`, `QuakeSoundsD.Massacre`, `QuakeSoundsD.Megakill`, `QuakeSoundsD.Monsterkill`, `QuakeSoundsD.Multikill`, `QuakeSoundsD.Outstanding`, `QuakeSoundsD.Ownage`, `QuakeSoundsD.Pancake`, `QuakeSoundsD.Payback`, `QuakeSoundsD.Perfect`, `QuakeSoundsD.Play`, `QuakeSoundsD.Prepare`, `QuakeSoundsD.Rampage`, `QuakeSoundsD.Retribution`, `QuakeSoundsD.Teamkiller`, `QuakeSoundsD.Triplekill`, `QuakeSoundsD.Ultrakill`, `QuakeSoundsD.Unstoppable`, `QuakeSoundsD.Vengeance`, `QuakeSoundsD.Wickedsick`
+</details>
 
-Disables the sounds instantly and remembers this state.
+<details>
+<summary>Click to view Female Sounds</summary>
 
-#### enable
+`QuakeSoundsF.Bottomfeeder`, `QuakeSoundsF.Dominating`, `QuakeSoundsF.Firstblood`, `QuakeSoundsF.Godlike`, `QuakeSoundsF.Headshot`, `QuakeSoundsF.Hexakill`, `QuakeSoundsF.Holyshit`, `QuakeSoundsF.Humiliation`, `QuakeSoundsF.Killingspree`, `QuakeSoundsF.Monsterkill`, `QuakeSoundsF.Multikill`, `QuakeSoundsF.Pentakill`, `QuakeSoundsF.Prepare`, `QuakeSoundsF.Quadrakill`, `QuakeSoundsF.Rampage`, `QuakeSoundsF.Shutdown`, `QuakeSoundsF.Ultrakill`, `QuakeSoundsF.Unstoppable`, `QuakeSoundsF.Wickedsick`, `QuakeSoundsF.Lastmanstanding`
+</details>
 
-Enables the sounds instantly and remembers this state.
+<details>
+<summary>Click to view Bomb Sounds</summary>
 
-## Compile Yourself
+`BombSounds.Sec1` through `BombSounds.Sec10`, `BombSounds.Sec20`, `BombSounds.Sec30`
+</details>
 
-Clone the project:
+## Troubleshooting
 
-```bash
-git clone https://github.com/Kandru/cs2-quake-sounds.git
-```
+**I don't hear any sounds!**
+1.  **Check MultiAddonManager**: Ensure it is installed and running without errors in the server console.
+2.  **Check Downloads**: When you connect to the server, do you see a download for the workshop addon? If not, the client doesn't have the files.
+3.  **Check Console**: Upon connection, you should see logs from MultiAddonManager confirming the addon download.
+4.  **Metamod Version**: Ensure your Metamod is up to date, or MultiAddonManager may fail.
 
-Go to the project directory
+## Development
 
-```bash
-  cd cs2-quake-sounds
-```
+To build the plugin from source:
 
-Install dependencies
+1.  Clone the repo: `git clone https://github.com/Kandru/cs2-quake-sounds.git`
+2.  Restore dependencies: `dotnet restore`
+3.  Build: `dotnet build` (Debug) or `dotnet publish` (Release)
 
-```bash
-  dotnet restore
-```
-
-Build debug files (to use on a development game server)
-
-```bash
-  dotnet build
-```
-
-Build release files (to use on a production game server)
-
-```bash
-  dotnet publish
-```
-
-## FAQ
-
-### Which sound should be played when? Can you provide examples?
-
-Please refer to the example configuration found above or search the internet. However, here's a list you can refer to:
-
-```
-3 Frags → TRIPLE KILL
-5 Frags → MULTI KILL
-6 Frags → RAMPAGE
-7 Frags → KILLING SPREE
-8 Frags → DOMINATING
-9 Frags → IMPRESSIVE
-10 Frags → UNSTOPPABLE
-11 Frags → OUTSTANDING
-12 Frags → MEGA KILL
-13 Frags → ULTRA KILL
-14 Frags → EAGLE EYE
-15 Frags → OWNAGE
-16 Frags → COMBO KING
-17 Frags → MANIAC
-18 Frags → LUDICROUS KILL
-19 Frags → BULLSEYE
-20 Frags → EXCELLENT
-21 Frags → PANCAKE
-22 Frags → HEAD HUNTER
-23 Frags → UNREAL
-24 Frags → ASSASSIN
-25 Frags → WICKED SICK
-26 Frags → MASSACRE
-27 Frags → KILLING MACHINE
-28 Frags → MONSTER KILL
-29 Frags → HOLY SHIT
-30 Frags → G O D L I K E
-```
-
-### Where can I find sounds?
-
-Sounds are spread over the internet. We provide a Workshop Addon which you can use: https://steamcommunity.com/sharedfiles/filedetails/?id=3461824328 which contains the following sounds:
-
-#### Male Sounds
-
-```
-QuakeSoundsD.Assassin
-QuakeSoundsD.Bullseye
-QuakeSoundsD.Comboking
-QuakeSoundsD.Combowhore
-QuakeSoundsD.Dominating
-QuakeSoundsD.Dominating2
-QuakeSoundsD.Dominating3
-QuakeSoundsD.Doublekill
-QuakeSoundsD.Doublekill2
-QuakeSoundsD.Doublekill3
-QuakeSoundsD.Eagleeye
-QuakeSoundsD.Eagleeye2
-QuakeSoundsD.Excellent
-QuakeSoundsD.Firstblood
-QuakeSoundsD.Firstblood2
-QuakeSoundsD.Firstblood3
-QuakeSoundsD.Firstblood4
-QuakeSoundsD.Flawless
-QuakeSoundsD.Godlike
-QuakeSoundsD.Godlike2
-QuakeSoundsD.Haha
-QuakeSoundsD.Hattrick
-QuakeSoundsD.Hattrick2
-QuakeSoundsD.Headhunter
-QuakeSoundsD.Headshot
-QuakeSoundsD.Headshot2
-QuakeSoundsD.Headshot3
-QuakeSoundsD.Headshot4
-QuakeSoundsD.Holyshit
-QuakeSoundsD.Humiliating
-QuakeSoundsD.Humiliatingdefeat
-QuakeSoundsD.Humiliation
-QuakeSoundsD.Impressive
-QuakeSoundsD.Impressive2
-QuakeSoundsD.Killingmachine
-QuakeSoundsD.Killingspree
-QuakeSoundsD.Killingspree2
-QuakeSoundsD.Ludicrouskill
-QuakeSoundsD.Ludicrouskill2
-QuakeSoundsD.Maniac
-QuakeSoundsD.Massacre
-QuakeSoundsD.Megakill
-QuakeSoundsD.Megakill2
-QuakeSoundsD.Monsterkill
-QuakeSoundsD.Monsterkill2
-QuakeSoundsD.Multikill
-QuakeSoundsD.Multikill2
-QuakeSoundsD.Outstanding
-QuakeSoundsD.Ownage
-QuakeSoundsD.Pancake
-QuakeSoundsD.Payback
-QuakeSoundsD.Perfect
-QuakeSoundsD.Play
-QuakeSoundsD.Prepare
-QuakeSoundsD.Prepare2
-QuakeSoundsD.Rampage
-QuakeSoundsD.Retribution
-QuakeSoundsD.Teamkiller
-QuakeSoundsD.Triplekill
-QuakeSoundsD.Ultrakill
-QuakeSoundsD.Ultrakill2
-QuakeSoundsD.Unstoppable
-QuakeSoundsD.Unstoppable2
-QuakeSoundsD.Vengeance
-QuakeSoundsD.Wickedsick
-```
-
-#### Female Sounds
-
-```
-QuakeSoundsF.Bottomfeeder
-QuakeSoundsF.Dominating
-QuakeSoundsF.Firstblood
-QuakeSoundsF.Godlike
-QuakeSoundsF.Headshot
-QuakeSoundsF.Hexakill
-QuakeSoundsF.Holyshit
-QuakeSoundsF.Humiliation
-QuakeSoundsF.Killingspree
-QuakeSoundsF.Monsterkill
-QuakeSoundsF.Multikill
-QuakeSoundsF.Pentakill
-QuakeSoundsF.Prepare
-QuakeSoundsF.Quadrakill
-QuakeSoundsF.Rampage
-QuakeSoundsF.Shutdown
-QuakeSoundsF.Ultrakill
-QuakeSoundsF.Unstoppable
-QuakeSoundsF.Wickedsick
-QuakeSoundsF.Lastmanstanding
-```
-
-#### Bomb Sounds
-```
-BombSounds.Sec1
-BombSounds.Sec2
-BombSounds.Sec3
-BombSounds.Sec4
-BombSounds.Sec5
-BombSounds.Sec6
-BombSounds.Sec7
-BombSounds.Sec8
-BombSounds.Sec9
-BombSounds.Sec10
-BombSounds.Sec20
-BombSounds.Sec30
-```
-
-### I cannot hear any sounds and I used your provided example configuration and MultiAddonManager
-
-Make sure the **MultiAddonManager** does not have any errors in the server console. Make also sure your Client is actually asked during connecting to your server to download the Quake Sounds. If the client is not asked you do **NOT** have the files on your system and will **NOT** hear anything.
-
-When having everything installed correctly you **MUST** see the following inside your server console upon connection:
-
-```
-[MultiAddonManager] Addon 3461824328 downloaded successfully
-[MultiAddonManager] Client kalle (XXXX) connected:
-[MultiAddonManager] first connection, sending addon 3461824328
-[MultiAddonManager] Client kalle (XXXX) connected:
-[MultiAddonManager] reconnected within the interval and has all addons, allowing
-```
-
-Also make sure your Metamod version is up to date. Otherwise MultiAddonManager will not work:
-
-```
-[META] Failed to load plugin addons/multiaddonmanager/bin/multiaddonmanager: Plugin requires newer Metamod version (17 > 16)
-```
-
-## License
+## License & Authors
 
 Released under [GPLv3](/LICENSE) by [@Kandru](https://github.com/Kandru).
 
-## Authors
-
+**Authors:**
 - [@derkalle4](https://www.github.com/derkalle4)
-- [@jmgraeffe](https://www.github.com/jmgraeffe)
