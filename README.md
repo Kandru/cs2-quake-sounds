@@ -9,7 +9,7 @@
 [![issues - cs2-map-modifier](https://img.shields.io/github/issues/Kandru/cs2-quake-sounds)](https://github.com/Kandru/cs2-quake-sounds/issues)
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=C2AVYKGVP9TRG)
 
-Bring the classic Quake announcer experience to CS2! This plugin adds customizable sound effects for kill streaks, headshots, and other special events. It supports multiple languages, per-player settings, and flexible sound configuration.
+Bring the classic Quake announcer experience to CS2! This plugin adds customizable sound effects for kill streaks, headshots, and other special events. It supports multiple languages and flexible sound configuration.
 
 ## Installation
 
@@ -186,13 +186,25 @@ The configuration file is located at `/addons/counterstrikesharp/configs/plugins
 #### Global Settings
 *   **`global`**: Controls general behavior.
     *   `play_on_entity`: "player" (sound follows player) or "world" (fixed position).
-    *   `sound_hearable_by`: Who hears the sound ("all", "attacker", "victim", "spectator", etc.).
+    *   `sound_hearable_by`: Who hears the sound. Options: `all`, `attacker_team`, `victim_team`, `involved`, `attacker`, `victim`, `spectator`.
 *   **`precache`**: Points to the sound event file in your workshop addon. **Important:** If you use a custom addon, ensure this matches the file inside the addon.
 
 #### Defining Sounds (`sounds`)
 This is the core of the configuration. You can map sounds to:
 *   **Kill Streaks**: Use the number of kills as the key (e.g., `"3"`, `"5"`).
-*   **Special Events**: Use event names like `"headshot"`, `"firstblood"`, `"knifekill"`, `"round_start"`, `"bomb_planted"`.
+*   **Special Events**: Use one of the following event names:
+    *   `round_start`
+    *   `round_end`
+    *   `round_freeze_end`
+    *   `bomb_planted`
+    *   `bomb_defused`
+    *   `bomb_exploded`
+    *   `bomb_<SECONDS>` (e.g., `bomb_10`, `bomb_5`)
+    *   `firstblood`
+    *   `headshot`
+    *   `knifekill`
+    *   `selfkill`
+    *   `teamkill`
 *   **Weapons**: Use `"weapon_<name>"` (e.g., `"weapon_hegrenade"`) to play sounds for specific weapon kills.
 
 **Sound Entry Format:**
