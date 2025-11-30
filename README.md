@@ -216,8 +216,17 @@ Each sound entry requires:
 3.  **`_filter`** (Optional): Override who hears this specific sound (e.g., `"attacker"`).
 
 #### Messages & Commands
-*   **`messages`**: Toggle chat and center screen announcements.
+*   **`messages`**:
+    *   `enable_center_message`: Toggle center screen announcements.
+    *   `center_message_type`: The visual style of the center message. Options: `default`, `alert`, `html`.
+    *   `enable_chat_message`: Toggle chat announcements.
 *   **`commands`**: Customize the command to open the menu (default: `qs`).
+
+#### Sound Priorities (`sound_priorities`)
+When multiple sound events occur simultaneously (e.g., a headshot that is also a killstreak), this setting determines which one takes precedence. **Lower numbers mean higher priority.**
+*   `special_events`: Events like headshot, knife kill, round end.
+*   `weapons`: Specific weapon kill sounds.
+*   `kill_streak`: Kill streak sounds (Multi Kill, etc.).
 
 ## Commands
 
