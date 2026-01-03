@@ -16,7 +16,7 @@ Bring the classic Quake announcer experience to CS2! This plugin adds customizab
 1.  **Download**: Get the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-quake-sounds/releases/).
 2.  **Install Plugin**: Extract the `QuakeSounds` folder into your server's `/addons/counterstrikesharp/plugins/` directory.
 3.  **Install Dependencies**: Download and install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager). This is required to ensure players download the sound files.
-4.  **Add Sounds**: Configure MultiAddonManager to include a Quake Sounds workshop addon. We recommend using this one: [Steam Workshop ID 3461824328](https://steamcommunity.com/sharedfiles/filedetails/?id=3461824328).
+4.  **Add Sounds**: Configure MultiAddonManager to include a Quake Sounds workshop addon. We recommend using ours: [Steam Workshop ID 3461824328](https://steamcommunity.com/sharedfiles/filedetails/?id=3461824328), alternatively generate your own Workshop Addon by using our [quake-sounds-resources](https://github.com/Kandru/cs2-quake-sounds-resources).
 5.  **Restart**: Restart your server to load the plugin and addon manager.
 6.  **Configure**: Open `/addons/counterstrikesharp/configs/plugins/QuakeSounds/QuakeSounds.json` and add your desired sounds. **Note:** The plugin comes with no sounds enabled by default!
 
