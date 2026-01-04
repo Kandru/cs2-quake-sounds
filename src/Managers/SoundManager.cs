@@ -20,11 +20,11 @@ namespace QuakeSounds.Managers
             IOrderedEnumerable<(string Type, int Priority, Func<bool> TryPlay)> soundTypePriorities = new[]
             {
                 (Type: "KillSounds", Priority: config.SoundPriorities.KillStreak, TryPlay: new Func<bool>(() =>
-                    _killStreakSounds.TryToPlay(attacker, victim, killCount))),
+                    _killStreakSounds.TryToPlay(attacker, victim, eventData, killCount))),
                 (Type: "SpecialEventSounds", Priority: config.SoundPriorities.SpecialEvents, TryPlay: new Func<bool>(() =>
                     _specialEventSounds.TryToPlay(attacker, victim, eventData))),
                 (Type: "WeaponSounds", Priority: config.SoundPriorities.Weapons, TryPlay: new Func<bool>(() =>
-                    _weaponSounds.TryToPlay(attacker, victim, eventData.Weapon)))
+                    _weaponSounds.TryToPlay(attacker, victim, eventData)))
             }.OrderBy(x => x.Priority);
 
             // Try to play sounds in priority order

@@ -6,9 +6,9 @@ namespace QuakeSounds.SoundTypes
 {
     public class WeaponSounds(PluginConfig config, SoundService soundService, MessageService messageService, FilterService filterService) : BaseSoundType(config, soundService, messageService, filterService)
     {
-        public bool TryToPlay(CCSPlayerController attacker, CCSPlayerController? victim, string weapon)
+        public bool TryToPlay(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
         {
-            string weaponKey = GetWeaponKey(weapon);
+            string weaponKey = GetWeaponKey(eventData.Weapon);
             return PlaySound(attacker, victim, weaponKey);
         }
 

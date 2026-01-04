@@ -106,12 +106,6 @@ namespace QuakeSounds
                 _playerKillsInRound[victim] = 0;
             }
 
-            if (@event.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) && Config.Global.IgnoreWorldDamage)
-            {
-                DebugPrint("Ignoring world damage.");
-                return HookResult.Continue;
-            }
-
             // check attacker
             CCSPlayerController? attacker = @event.Attacker;
             if (attacker == null
