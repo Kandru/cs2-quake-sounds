@@ -32,6 +32,7 @@ namespace QuakeSounds
             RegisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
+            RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
             RegisterEventHandler<EventBombPlanted>(OnBombPlanted);
             RegisterEventHandler<EventBombDefused>(OnBombDefused);
@@ -59,6 +60,7 @@ namespace QuakeSounds
             DeregisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
             DeregisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
+            DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             DeregisterEventHandler<EventPlayerChat>(OnPlayerChatCommand);
             DeregisterEventHandler<EventBombPlanted>(OnBombPlanted);
             DeregisterEventHandler<EventBombDefused>(OnBombDefused);
@@ -130,6 +132,19 @@ namespace QuakeSounds
             }
 
             LoadPlayerLanguage(player.SteamID);
+            return HookResult.Continue;
+        }
+
+        private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
+        {
+            CCSPlayerController? player = @event.Userid;
+            if (player == null
+                || !player.IsValid)
+            {
+                return HookResult.Continue;
+            }
+            // remove player from dictionary
+            _playerKillCounter.Remove(player);
             return HookResult.Continue;
         }
 
