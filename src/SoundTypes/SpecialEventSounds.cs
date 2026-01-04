@@ -6,9 +6,9 @@ using QuakeSounds.Services;
 namespace QuakeSounds.SoundTypes
 {
     public class SpecialEventSounds(PluginConfig config, SoundService soundService, MessageService messageService,
-        FilterService filterService, Dictionary<CCSPlayerController, int> playerKillsInRound) : BaseSoundType(config, soundService, messageService, filterService)
+        FilterService filterService, Dictionary<CCSPlayerController, int> playerKillCounter) : BaseSoundType(config, soundService, messageService, filterService)
     {
-        private readonly Dictionary<CCSPlayerController, int> _playerKillsInRound = playerKillsInRound;
+        private readonly Dictionary<CCSPlayerController, int> _totalPlayerKills = playerKillCounter;
 
         public bool TryToPlay(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
         {
@@ -35,8 +35,8 @@ namespace QuakeSounds.SoundTypes
 
         private bool IsFirstBlood(CCSPlayerController attacker)
         {
-            return _playerKillsInRound.TryGetValue(attacker, out int kills) &&
-                   _playerKillsInRound.Count == 1 && kills == 1;
+            return _totalPlayerKills.TryGetValue(attacker, out int kills) &&
+                   _totalPlayerKills.Count == 1 && kills == 1;
         }
 
         private bool TryPlayLastManStanding(CCSPlayerController? victim)

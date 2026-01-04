@@ -15,7 +15,7 @@ namespace QuakeSounds
         public override string ModuleName => "CS2 QuakeSounds";
         public override string ModuleAuthor => "Kalle <kalle@kandru.de>";
 
-        private readonly Dictionary<CCSPlayerController, int> _playerKillsInRound = [];
+        private readonly Dictionary<CCSPlayerController, int> _playerKillCounter = [];
 
         private SoundService? _soundService;
         private MessageService? _messageService;
@@ -73,7 +73,7 @@ namespace QuakeSounds
             _soundService = new SoundService(Config, DebugPrint);
             _messageService = new MessageService(Config, new(), GetLocalizedMessage);
             _filterService = new FilterService(Config, DebugPrint);
-            _soundManager = new SoundManager(Config, _soundService, _messageService, _filterService, _playerKillsInRound);
+            _soundManager = new SoundManager(Config, _soundService, _messageService, _filterService, _playerKillCounter);
         }
 
         private void DestroyServices()
@@ -101,9 +101,9 @@ namespace QuakeSounds
             }
 
             // reset kill count if victim exists in dictionary
-            if (_playerKillsInRound.ContainsKey(victim) && Config.Global.ResetKillsOnDeath)
+            if (_playerKillCounter.ContainsKey(victim) && Config.Global.ResetKillsOnDeath)
             {
-                _playerKillsInRound[victim] = 0;
+                _playerKillCounter[victim] = 0;
             }
 
             // check attacker
@@ -202,14 +202,14 @@ namespace QuakeSounds
         private void OnMapStart(string mapName)
         {
             // reset player kills
-            _playerKillsInRound.Clear();
+            _playerKillCounter.Clear();
         }
 
         public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
         {
             if (Config.Global.ResetKillsOnRoundStart)
             {
-                _playerKillsInRound.Clear();
+                _playerKillCounter.Clear();
             }
 
             _bombExplosionTimer = 0;
@@ -271,9 +271,9 @@ namespace QuakeSounds
 
         private void UpdateKillCount(CCSPlayerController attacker)
         {
-            _ = _playerKillsInRound.TryGetValue(attacker, out int kills);
-            _playerKillsInRound[attacker] = kills + 1;
-            DebugPrint($"Player {attacker.PlayerName} has {_playerKillsInRound[attacker]} kills.");
+            _ = _playerKillCounter.TryGetValue(attacker, out int kills);
+            _playerKillCounter[attacker] = kills + 1;
+            DebugPrint($"Player {attacker.PlayerName} has {_playerKillCounter[attacker]} kills.");
         }
 
         private void DebugPrint(string message)
