@@ -5,14 +5,15 @@ using QuakeSounds.Services;
 
 namespace QuakeSounds.SoundTypes
 {
-    public class RoundSounds(PluginConfig config, SoundService soundService, MessageService messageService, FilterService filterService) : BaseSoundType(config, soundService, messageService, filterService)
+    public class GlobalSounds(PluginConfig config, SoundService soundService, MessageService messageService, FilterService filterService) : BaseSoundType(config, soundService, messageService, filterService)
     {
-        public bool TryToPlay(string soundKey)
+        public void Play(string soundKey, string prefix)
         {
-            if (!Config.Sounds.TryGetValue($"round_{soundKey}", out Dictionary<string, string>? soundConfig) ||
+            string fullKey = $"{prefix}_{soundKey}";
+            if (!Config.Sounds.TryGetValue(fullKey, out Dictionary<string, string>? soundConfig) ||
                 !soundConfig.TryGetValue("_sound", out string? soundName))
             {
-                return false;
+                return;
             }
 
             RecipientFilter filter = FilterService.PrepareFilter(null, null, soundConfig.GetValueOrDefault("_filter"));
@@ -21,13 +22,6 @@ namespace QuakeSounds.SoundTypes
             {
                 SoundService.PlaySound(player, soundName, Config.Global.PlayOnEntity, filter);
             }
-
-            return true;
-        }
-
-        public void PlayRoundSound(string soundKey)
-        {
-            _ = TryToPlay(soundKey);
         }
     }
 }

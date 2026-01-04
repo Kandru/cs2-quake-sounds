@@ -26,6 +26,7 @@ namespace QuakeSounds
         public override void Load(bool hotReload)
         {
             RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
+            RegisterListener<Listeners.OnMapStart>(OnMapStart);
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
             RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
             RegisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
@@ -35,7 +36,6 @@ namespace QuakeSounds
             RegisterEventHandler<EventBombPlanted>(OnBombPlanted);
             RegisterEventHandler<EventBombDefused>(OnBombDefused);
             RegisterEventHandler<EventBombExploded>(OnBombExploded);
-            RegisterListener<Listeners.OnMapStart>(OnMapStart);
             HookUserMessage(208, HookUserMessage208);
             AddCommand(Config.Commands.SettingsCommand, "QuakeSounds user settings", CommandQuakeSoundSettings);
             InitializeServices();
@@ -53,6 +53,7 @@ namespace QuakeSounds
         public override void Unload(bool hotReload)
         {
             RemoveListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
+            RemoveListener<Listeners.OnMapStart>(OnMapStart);
             DeregisterEventHandler<EventRoundStart>(OnRoundStart);
             DeregisterEventHandler<EventRoundEnd>(OnRoundEnd);
             DeregisterEventHandler<EventRoundFreezeEnd>(OnRoundFreezeEnd);
@@ -62,7 +63,6 @@ namespace QuakeSounds
             DeregisterEventHandler<EventBombPlanted>(OnBombPlanted);
             DeregisterEventHandler<EventBombDefused>(OnBombDefused);
             DeregisterEventHandler<EventBombExploded>(OnBombExploded);
-            RemoveListener<Listeners.OnMapStart>(OnMapStart);
             UnhookUserMessage(208, HookUserMessage208);
             RemoveCommand(Config.Commands.SettingsCommand, CommandQuakeSoundSettings);
             DestroyServices();

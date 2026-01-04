@@ -14,7 +14,6 @@ namespace QuakeSounds.Services
 
         public void PrintMessage(CCSPlayerController player, Dictionary<string, string> sound, RecipientFilter filter)
         {
-            // Early return if no recipients or if both message types are disabled
             if (filter.Count == 0 || (!_config.Messages.CenterMessage && !_config.Messages.ChatMessage))
             {
                 return;
@@ -28,77 +27,54 @@ namespace QuakeSounds.Services
 
         private void SendMessageToPlayer(CCSPlayerController recipient, CCSPlayerController player, Dictionary<string, string> sound)
         {
-            CultureInfo playerCulture = _languageManager.GetLanguage(new SteamID(recipient.SteamID)) ?? CultureInfo.InvariantCulture;
-            string? languageCode = ResolvePlayerLanguageCode(recipient.SteamID, playerCulture);
-
-            string? message = GetLocalizedMessage(sound, languageCode);
+            string? message = GetMessageForPlayer(sound, recipient.SteamID);
             if (string.IsNullOrEmpty(message))
             {
                 return;
             }
 
+            CultureInfo playerCulture = _languageManager.GetLanguage(new SteamID(recipient.SteamID)) ?? CultureInfo.InvariantCulture;
             using WithTemporaryCulture culture = new(playerCulture);
 
             SendCenterMessage(recipient, player, message);
             SendChatMessage(recipient, player, message);
         }
 
-        private string? GetLocalizedMessage(Dictionary<string, string> sound, string? playerLanguage)
+        private string? GetMessageForPlayer(Dictionary<string, string> sound, ulong playerSteamId)
         {
-            if (TryGetMessage(sound, playerLanguage, out string? playerMessage))
+            // Try player's stored language
+            if (_config.Data.PlayerLanguages.TryGetValue(playerSteamId, out string? storedLanguage) && 
+                TryGetLocalizedMessage(sound, NormalizeLanguageCode(storedLanguage), out string? message))
             {
-                return playerMessage;
+                return message;
             }
 
-            string serverLanguage = NormalizeLanguageCode(CoreConfig.ServerLanguage);
-            if (TryGetMessage(sound, serverLanguage, out string? serverMessage))
+            // Try server language
+            if (TryGetLocalizedMessage(sound, NormalizeLanguageCode(CoreConfig.ServerLanguage), out message))
             {
-                return serverMessage;
+                return message;
             }
 
+            // Return first available message
             return sound.Values.FirstOrDefault();
         }
 
-        private string? ResolvePlayerLanguageCode(ulong steamId, CultureInfo fallbackCulture)
-        {
-            if (_config.Data.PlayerLanguages.TryGetValue(steamId, out string? storedLanguage) && !string.IsNullOrWhiteSpace(storedLanguage))
-            {
-                return NormalizeLanguageCode(storedLanguage);
-            }
-
-            string cultureName = NormalizeLanguageCode(fallbackCulture.Name);
-            if (!string.IsNullOrEmpty(cultureName))
-            {
-                return cultureName;
-            }
-
-            return NormalizeLanguageCode(fallbackCulture.TwoLetterISOLanguageName);
-        }
-
-        private static bool TryGetMessage(Dictionary<string, string> sound, string? languageKey, out string? message)
+        private static bool TryGetLocalizedMessage(Dictionary<string, string> sound, string? languageKey, out string? message)
         {
             message = null;
-
             if (string.IsNullOrWhiteSpace(languageKey))
             {
                 return false;
             }
 
-            if (sound.TryGetValue(languageKey, out string? directMatch))
+            foreach (var kvp in sound)
             {
-                message = directMatch;
-                return true;
+                if (kvp.Key.Equals(languageKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    message = kvp.Value;
+                    return true;
+                }
             }
-
-            string? caseInsensitiveMatch = sound.FirstOrDefault(
-                pair => pair.Key.Equals(languageKey, StringComparison.OrdinalIgnoreCase)).Value;
-
-            if (!string.IsNullOrEmpty(caseInsensitiveMatch))
-            {
-                message = caseInsensitiveMatch;
-                return true;
-            }
-
             return false;
         }
 
@@ -111,14 +87,9 @@ namespace QuakeSounds.Services
 
             int separatorIndex = languageCode.IndexOf('-', StringComparison.Ordinal);
             string normalized = separatorIndex > 0 ? languageCode[..separatorIndex] : languageCode;
-            normalized = normalized.Trim();
+            normalized = normalized.Trim().ToLowerInvariant();
 
-            if (normalized.Length == 0 || normalized.Equals("iv", StringComparison.OrdinalIgnoreCase))
-            {
-                return string.Empty;
-            }
-
-            return normalized.ToLowerInvariant();
+            return normalized.Equals("iv", StringComparison.OrdinalIgnoreCase) ? string.Empty : normalized;
         }
 
         private void SendCenterMessage(CCSPlayerController recipient, CCSPlayerController player, string message)

@@ -10,8 +10,7 @@ namespace QuakeSounds.Managers
         private readonly KillStreakSounds _killStreakSounds = new(config, soundService, messageService, filterService);
         private readonly SpecialEventSounds _specialEventSounds = new(config, soundService, messageService, filterService, playerKillsInRound);
         private readonly WeaponSounds _weaponSounds = new(config, soundService, messageService, filterService);
-        private readonly RoundSounds _roundSounds = new(config, soundService, messageService, filterService);
-        private readonly BombSounds _bombSounds = new(config, soundService, messageService, filterService);
+        private readonly GlobalSounds _globalSounds = new(config, soundService, messageService, filterService);
         private readonly Dictionary<CCSPlayerController, int> _playerKillsInRound = playerKillsInRound;
 
         public void PlayKillSound(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
@@ -40,12 +39,12 @@ namespace QuakeSounds.Managers
 
         public void PlayRoundSound(string soundKey)
         {
-            _roundSounds.PlayRoundSound(soundKey);
+            _globalSounds.Play(soundKey, "round");
         }
 
         public void PlayBombSound(string soundKey)
         {
-            _bombSounds.PlayBombSound(soundKey);
+            _globalSounds.Play(soundKey, "bomb");
         }
     }
 }
