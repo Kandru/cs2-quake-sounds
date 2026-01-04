@@ -43,11 +43,9 @@ namespace QuakeSounds.SoundTypes
         {
             if (victim?.IsValid != true || victim.Team == CsTeam.Spectator || victim.Team == CsTeam.None)
             {
-                Console.WriteLine("False");
                 return false;
             }
             List<CCSPlayerController> alivePlayers = Utilities.GetPlayers().Where(p => p.Team == victim.Team && p.Pawn?.Value?.LifeState == (uint)LifeState_t.LIFE_ALIVE).ToList();
-            Console.WriteLine(alivePlayers);
             return alivePlayers.Count == 1 && PlaySound(alivePlayers[0], victim, "lastmanstanding", null);
         }
     }
