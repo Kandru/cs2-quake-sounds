@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Core.Translations;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using QuakeSounds.Utils;
 
 namespace QuakeSounds
 {
@@ -68,6 +69,7 @@ namespace QuakeSounds
     {
         public required PluginConfig Config { get; set; }
         private readonly PlayerLanguageManager playerLanguageManager = new();
+        private readonly Dictionary<uint, string> _soundHashes = [];
 
         public void OnConfigParsed(PluginConfig config)
         {
@@ -80,6 +82,20 @@ namespace QuakeSounds
                     .ToDictionary(static y => y.Key, static y => y.Value));
             // update config and write new values from plugin to config file if changed after update
             Config.Update();
+            // calculate sound event hash for each sound
+            foreach (KeyValuePair<string, Dictionary<string, string>> kvp in Config.Sounds)
+            {
+                if (!kvp.Value.ContainsKey("_sound"))
+                {
+                    continue;
+                }
+                uint hash = SoundEventUtils.GenerateSoundHash(kvp.Value["_sound"]);
+                if (_soundHashes.ContainsKey(hash))
+                {
+                    continue;
+                }
+                _soundHashes.Add(hash, kvp.Key);
+            }
             Console.WriteLine(Localizer["core.config"]);
         }
 

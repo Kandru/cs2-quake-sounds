@@ -296,6 +296,8 @@ All weapons can make a sound on kill, e.g. HE-Grenade (weapon_hegrenade). Just u
 
 All sounds **MUST** contain a list of at least two entries. One is the *_sound* file name or path. If it is a file name you will need a Workshop Addon where these file names are defined. If you use a path, e.g. *sounds/cs2/quakesounds/default/haha.vsnd* you don't need a Workshop Addon. However the player must have the given file in his game files somewhere.
 
+Additionally you can set the volume of a given sound with the *_volume* key. Default is "1" (100%). You can adjust it to a higher volume, for example *1.5* for 150%. Or lower, e.g. *0.5* for 50%.
+
 #### Example with Workshop Addon Soundevent name
 
 All settings done in the Soundevent file for this specific sound name apply (e.g. Volume, sound distance, pitch, ...). Other players will hear it because the sound is positional. Players can change the volume via ingame settings.

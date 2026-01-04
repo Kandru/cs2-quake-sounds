@@ -2,8 +2,10 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Events;
-using QuakeSounds.Services;
+using CounterStrikeSharp.API.Modules.UserMessages;
 using QuakeSounds.Managers;
+using QuakeSounds.Services;
+using QuakeSounds.Utils;
 using System.Globalization;
 
 namespace QuakeSounds
@@ -34,6 +36,7 @@ namespace QuakeSounds
             RegisterEventHandler<EventBombDefused>(OnBombDefused);
             RegisterEventHandler<EventBombExploded>(OnBombExploded);
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
+            HookUserMessage(208, HookUserMessage208);
             AddCommand(Config.Commands.SettingsCommand, "QuakeSounds user settings", CommandQuakeSoundSettings);
             InitializeServices();
             if (hotReload)
@@ -60,6 +63,7 @@ namespace QuakeSounds
             DeregisterEventHandler<EventBombDefused>(OnBombDefused);
             DeregisterEventHandler<EventBombExploded>(OnBombExploded);
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
+            UnhookUserMessage(208, HookUserMessage208);
             RemoveCommand(Config.Commands.SettingsCommand, CommandQuakeSoundSettings);
             DestroyServices();
         }
@@ -82,7 +86,7 @@ namespace QuakeSounds
 
         public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
         {
-            if (!Config.Global.EnabledDuringWarmup && (bool)GetGameRule("WarmupPeriod")!)
+            if (!Config.Global.EnabledDuringWarmup && (bool)GameRules.Get("WarmupPeriod")!)
             {
                 DebugPrint("Ignoring during warmup.");
                 return HookResult.Continue;
@@ -91,8 +95,7 @@ namespace QuakeSounds
             // check victim
             CCSPlayerController? victim = @event.Userid;
             if (victim == null
-                || victim.IsValid != true
-                || (victim.IsBot && Config.Global.IgnoreBots))
+                || !victim.IsValid || (victim.IsBot && Config.Global.IgnoreBots))
             {
                 return HookResult.Continue;
             }
@@ -112,8 +115,7 @@ namespace QuakeSounds
             // check attacker
             CCSPlayerController? attacker = @event.Attacker;
             if (attacker == null
-                || attacker.IsValid != true
-                || (attacker.IsBot && Config.Global.IgnoreBots))
+                || !attacker.IsValid || (attacker.IsBot && Config.Global.IgnoreBots))
             {
                 return HookResult.Continue;
             }
@@ -172,7 +174,7 @@ namespace QuakeSounds
                 return HookResult.Continue;
             }
             _bombExplosionTimer = (int)Server.CurrentTime + mpC4Timer.GetPrimitiveValue<int>() + 1;
-            AddTimer(1.0f, BombSoundHandler);
+            _ = AddTimer(1.0f, BombSoundHandler);
             _soundManager?.PlayBombSound("planted");
             return HookResult.Continue;
         }
@@ -200,7 +202,7 @@ namespace QuakeSounds
                 return;
             }
             _soundManager?.PlayBombSound(secondsLeft.ToString());
-            AddTimer(1.0f, BombSoundHandler);
+            _ = AddTimer(1.0f, BombSoundHandler);
         }
 
         private void OnMapStart(string mapName)
@@ -230,6 +232,28 @@ namespace QuakeSounds
             return HookResult.Continue;
         }
 
+        public HookResult HookUserMessage208(UserMessage um)
+        {
+            uint soundevent = um.ReadUInt("soundevent_hash");
+            uint soundevent_guid = um.ReadUInt("soundevent_guid");
+            if (!_soundHashes.ContainsKey(soundevent)
+                || !Config.Sounds.ContainsKey(_soundHashes[soundevent])
+                || !Config.Sounds[_soundHashes[soundevent]].ContainsKey("_volume"))
+            {
+                return HookResult.Continue;
+            }
+            DebugPrint($"Received sound event: {_soundHashes[soundevent]}, hash: {soundevent}.");
+            new SoundParams
+            {
+                Guid = soundevent_guid,
+                Recipients = um.Recipients
+            }
+            .Volume(int.TryParse(Config.Sounds[_soundHashes[soundevent]]["_volume"], out int vol) ? vol : 1f)
+            .Send();
+            DebugPrint($"Sending sound event: {_soundHashes[soundevent]} with volume {vol}");
+            return HookResult.Continue;
+        }
+
         private void ProcessKill(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath @event)
         {
             if (ShouldCountKill(attacker, victim))
@@ -252,6 +276,14 @@ namespace QuakeSounds
             _ = _playerKillsInRound.TryGetValue(attacker, out int kills);
             _playerKillsInRound[attacker] = kills + 1;
             DebugPrint($"Player {attacker.PlayerName} has {_playerKillsInRound[attacker]} kills.");
+        }
+
+        private void DebugPrint(string message)
+        {
+            if (Config.Debug)
+            {
+                Console.WriteLine(Localizer["core.debugprint"].Value.Replace("{message}", message));
+            }
         }
     }
 }
