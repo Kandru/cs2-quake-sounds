@@ -9,11 +9,7 @@ namespace QuakeSounds.SoundTypes
         public bool TryToPlay(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData, int killCount)
         {
             // ignore world damage
-            if (eventData.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) && Config.Global.IgnoreWorldDamage)
-            {
-                return false;
-            }
-            return PlaySound(attacker, victim, killCount.ToString());
+            return (!eventData.Weapon.Equals("world", StringComparison.OrdinalIgnoreCase) || !Config.Global.IgnoreWorldDamage) && PlaySound(attacker, victim, killCount.ToString());
         }
     }
 }
