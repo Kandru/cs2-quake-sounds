@@ -101,7 +101,7 @@ namespace QuakeSounds
             }
 
             // reset kill count if victim exists in dictionary
-            if (_playerKillsInRound.ContainsKey(victim))
+            if (_playerKillsInRound.ContainsKey(victim) && Config.Global.ResetKillsOnDeath)
             {
                 _playerKillsInRound[victim] = 0;
             }
@@ -207,7 +207,11 @@ namespace QuakeSounds
 
         public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
         {
-            _playerKillsInRound.Clear();
+            if (Config.Global.ResetKillsOnRoundStart)
+            {
+                _playerKillsInRound.Clear();
+            }
+
             _bombExplosionTimer = 0;
             _soundManager?.PlayRoundSound("start");
             return HookResult.Continue;
@@ -261,8 +265,8 @@ namespace QuakeSounds
         private bool ShouldCountKill(CCSPlayerController attacker, CCSPlayerController? victim)
         {
             return attacker == victim
-                ? Config.CountSelfKills
-                : victim?.IsValid == true && attacker.Team == victim.Team ? Config.CountTeamKills : attacker != victim;
+                ? Config.Global.CountSelfKills
+                : victim?.IsValid == true && attacker.Team == victim.Team ? Config.Global.CountTeamKills : attacker != victim;
         }
 
         private void UpdateKillCount(CCSPlayerController attacker)

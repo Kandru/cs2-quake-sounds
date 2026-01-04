@@ -21,6 +21,10 @@ namespace QuakeSounds
         [JsonPropertyName("sound_hearable_by")] public string SoundHearableBy { get; set; } = "all";
         [JsonPropertyName("ignore_bots")] public bool IgnoreBots { get; set; } = true;
         [JsonPropertyName("ignore_world_damage")] public bool IgnoreWorldDamage { get; set; } = true;
+        [JsonPropertyName("count_self_kills")] public bool CountSelfKills { get; set; } = false;
+        [JsonPropertyName("count_team_kills")] public bool CountTeamKills { get; set; } = false;
+        [JsonPropertyName("reset_kills_on_death")] public bool ResetKillsOnDeath { get; set; } = true;
+        [JsonPropertyName("reset_kills_on_round_start")] public bool ResetKillsOnRoundStart { get; set; } = true;
     }
 
     public class MessageSettings
@@ -54,10 +58,6 @@ namespace QuakeSounds
         [JsonPropertyName("debug")] public bool Debug { get; set; } = false;
         [JsonPropertyName("global")] public GlobalSettings Global { get; set; } = new();
         [JsonPropertyName("precache")] public PrecacheConfig Precache { get; set; } = new();
-        [JsonPropertyName("count_self_kills")] public bool CountSelfKills { get; set; } = false;
-        [JsonPropertyName("count_team_kills")] public bool CountTeamKills { get; set; } = false;
-        [JsonPropertyName("reset_kills_on_death")] public bool ResetKillsOnDeath { get; set; } = true;
-        [JsonPropertyName("reset_kills_on_round_start")] public bool ResetKillsOnRoundStart { get; set; } = true;
         [JsonPropertyName("commands")] public CommandSettings Commands { get; set; } = new();
         [JsonPropertyName("messages")] public MessageSettings Messages { get; set; } = new();
         [JsonPropertyName("sound_priorities")] public SoundPriorities SoundPriorities { get; set; } = new();
