@@ -14,7 +14,7 @@ namespace QuakeSounds.SoundTypes
         {
             (string, Func<bool>)[] specialSounds =
             [
-                ("lastmanstanding", () => TryPlayLastManStanding(victim)),
+                ("lastmanstanding", () => TryPlayLastManStanding(attacker, victim)),
                 ("selfkill", () => attacker == victim && PlaySound(attacker, victim, "selfkill", "world")),
                 ("teamkill", () => victim?.IsValid == true && attacker.Team == victim.Team && PlaySound(attacker, victim, "teamkill", null)),
                 ("firstblood", () => IsFirstBlood(attacker) && PlaySound(attacker, victim, "firstblood", null)),
@@ -39,14 +39,15 @@ namespace QuakeSounds.SoundTypes
                    _totalPlayerKills.Count == 1 && kills == 1;
         }
 
-        private bool TryPlayLastManStanding(CCSPlayerController? victim)
+        private bool TryPlayLastManStanding(CCSPlayerController attacker, CCSPlayerController? victim)
         {
-            if (victim?.IsValid != true || victim.Team == CsTeam.Spectator || victim.Team == CsTeam.None)
+            if (attacker?.IsValid != true
+                || victim?.IsValid != true || victim.Team == CsTeam.Spectator || victim.Team == CsTeam.None)
             {
                 return false;
             }
-            List<CCSPlayerController> alivePlayers = Utilities.GetPlayers().Where(p => p.Team == victim.Team && p.Pawn?.Value?.LifeState == (uint)LifeState_t.LIFE_ALIVE).ToList();
-            return alivePlayers.Count == 1 && PlaySound(alivePlayers[0], victim, "lastmanstanding", null);
+            List<CCSPlayerController> alivePlayers = [.. Utilities.GetPlayers().Where(p => p.Team == victim.Team && p.Pawn?.Value?.LifeState == (uint)LifeState_t.LIFE_ALIVE)];
+            return alivePlayers.Count == 1 && PlaySound(attacker, alivePlayers[0], "lastmanstanding", null);
         }
     }
 }

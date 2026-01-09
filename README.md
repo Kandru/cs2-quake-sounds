@@ -99,7 +99,8 @@ The configuration file is located at `/addons/counterstrikesharp/configs/plugins
     "lastmanstanding": {
       "de": "Letzter Mann",
       "en": "Last Man Standing",
-      "_sound": "QuakeSoundsF.Lastmanstanding"
+      "_sound": "QuakeSoundsF.Lastmanstanding",
+      "_filter": "victim_team"
     },
     "firstblood": {
       "de": "Erster Abschuss",
@@ -205,7 +206,7 @@ This is the core of the configuration. You can map sounds to:
     *   `bomb_defused`
     *   `bomb_exploded`
     *   `bomb_<SECONDS>` (e.g., `bomb_10`, `bomb_5`)
-    *   `lastmanstanding`
+    *   `lastmanstanding` (should be filtered to *victim* or *victim_team* with *_filter* to avoid giving away the position to the enemies)
     *   `firstblood`
     *   `headshot`
     *   `knifekill`
