@@ -73,7 +73,7 @@ namespace QuakeSounds
         private void InitializeServices()
         {
             _soundService = new SoundService(Config, DebugPrint);
-            _messageService = new MessageService(Config, new(), GetLocalizedMessage);
+            _messageService = new MessageService(Config, playerLanguageManager, GetLocalizedMessage);
             _filterService = new FilterService(Config, DebugPrint);
             _soundManager = new SoundManager(Config, _soundService, _messageService, _filterService, _playerKillCounter);
         }

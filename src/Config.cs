@@ -151,9 +151,10 @@ namespace QuakeSounds
             DebugPrint($"Saved language for player {steamID} to {language}.");
         }
 
-        private string GetLocalizedMessage(string key)
+        private string GetLocalizedMessage(string key, CultureInfo culture)
         {
-            return Localizer[key].Value;
+            CultureInfo.CurrentUICulture = culture;
+            return Localizer[key];
         }
 
         private static CultureInfo GetCultureOrInvariant(string language)

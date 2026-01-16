@@ -6,11 +6,11 @@ using System.Globalization;
 
 namespace QuakeSounds.Services
 {
-    public class MessageService(PluginConfig config, PlayerLanguageManager languageManager, Func<string, string> getLocalizedString)
+    public class MessageService(PluginConfig config, PlayerLanguageManager languageManager, Func<string, CultureInfo, string> getLocalizedString)
     {
         private readonly PluginConfig _config = config;
         private readonly PlayerLanguageManager _languageManager = languageManager;
-        private readonly Func<string, string> _getLocalizedString = getLocalizedString;
+        private readonly Func<string, CultureInfo, string> _getLocalizedString = getLocalizedString;
 
         public void PrintMessage(CCSPlayerController player, Dictionary<string, string> sound, RecipientFilter filter)
         {
@@ -34,16 +34,16 @@ namespace QuakeSounds.Services
             }
 
             CultureInfo playerCulture = _languageManager.GetLanguage(new SteamID(recipient.SteamID)) ?? CultureInfo.InvariantCulture;
-            using WithTemporaryCulture culture = new(playerCulture);
+            using WithTemporaryCulture cultureScope = new(playerCulture);
 
-            SendCenterMessage(recipient, player, message);
-            SendChatMessage(recipient, player, message);
+            SendCenterMessage(recipient, player, message, playerCulture);
+            SendChatMessage(recipient, player, message, playerCulture);
         }
 
         private string? GetMessageForPlayer(Dictionary<string, string> sound, ulong playerSteamId)
         {
             // Try player's stored language
-            if (_config.Data.PlayerLanguages.TryGetValue(playerSteamId, out string? storedLanguage) && 
+            if (_config.Data.PlayerLanguages.TryGetValue(playerSteamId, out string? storedLanguage) &&
                 TryGetLocalizedMessage(sound, NormalizeLanguageCode(storedLanguage), out string? message))
             {
                 return message;
@@ -92,14 +92,14 @@ namespace QuakeSounds.Services
             return normalized.Equals("iv", StringComparison.OrdinalIgnoreCase) ? string.Empty : normalized;
         }
 
-        private void SendCenterMessage(CCSPlayerController recipient, CCSPlayerController player, string message)
+        private void SendCenterMessage(CCSPlayerController recipient, CCSPlayerController player, string message, CultureInfo culture)
         {
             if (!_config.Messages.CenterMessage)
             {
                 return;
             }
 
-            string centerMessage = GetFormattedMessage(recipient, player, message, "center.msg");
+            string centerMessage = GetFormattedMessage(recipient, player, message, "center.msg", culture);
 
             switch (_config.Messages.CenterMessageType.ToLower(CultureInfo.CurrentCulture))
             {
@@ -117,21 +117,21 @@ namespace QuakeSounds.Services
             }
         }
 
-        private void SendChatMessage(CCSPlayerController recipient, CCSPlayerController player, string message)
+        private void SendChatMessage(CCSPlayerController recipient, CCSPlayerController player, string message, CultureInfo culture)
         {
             if (!_config.Messages.ChatMessage)
             {
                 return;
             }
 
-            string chatMessage = GetFormattedMessage(recipient, player, message, "chat.msg");
+            string chatMessage = GetFormattedMessage(recipient, player, message, "chat.msg", culture);
             recipient.PrintToChat(chatMessage);
         }
 
-        private string GetFormattedMessage(CCSPlayerController recipient, CCSPlayerController player, string message, string localizerKey)
+        private string GetFormattedMessage(CCSPlayerController recipient, CCSPlayerController player, string message, string localizerKey, CultureInfo culture)
         {
             string templateKey = recipient == player ? $"{localizerKey}.player" : $"{localizerKey}.other";
-            string template = _getLocalizedString(templateKey);
+            string template = _getLocalizedString(templateKey, culture);
 
             return recipient == player
                 ? template.Replace("{message}", message)

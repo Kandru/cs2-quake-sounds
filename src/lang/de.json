@@ -12,6 +12,6 @@
     "sounds.unmuted": "[QuakeSounds] {default}Alle Sounds für dich aktiviert.",
     "center.msg.player": "{message}",
     "center.msg.other": "{player} -> {message}",
-    "chat.msg.player": "[QuakeSounds] {green}{message}",
+    "chat.msg.player": "[QuakeSounds] {default}Errungenschaft: {green}{message}",
     "chat.msg.other": "[QuakeSounds] {green}{player} {default}-> {green}{message}"
 }
