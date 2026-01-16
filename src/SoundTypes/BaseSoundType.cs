@@ -29,7 +29,9 @@ namespace QuakeSounds.SoundTypes
             }
 
             SoundService.PlaySound(attacker, soundName, playOn ?? Config.Global.PlayOnEntity, filter);
-            MessageService.PrintMessage(attacker, soundConfig, filter);
+            // normally only attacker gets the message, but last man standing has to be the victim (because he is the last man standing)
+            MessageService.PrintMessage(soundKey == "lastmanstanding" && victim is { IsValid: true } ? victim : attacker, soundConfig, filter);
+
             return true;
         }
     }
