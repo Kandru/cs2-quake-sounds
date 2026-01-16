@@ -39,7 +39,7 @@ namespace QuakeSounds.Services
                 "victim_team" => player.Team == victim?.Team,
                 "involved" => player == attacker || player == victim,
                 "attacker" => player == attacker,
-                "victim" => player != attacker && player != victim,
+                "victim" => player == victim,
                 "spectator" => player.Team == CsTeam.Spectator,
                 _ => true
             };
