@@ -268,6 +268,12 @@ If you use the recommended Workshop Addon (ID: `3461824328`), you can use these 
 `BombSounds.Sec1` through `BombSounds.Sec10`, `BombSounds.Sec20`, `BombSounds.Sec30`
 </details>
 
+<details>
+<summary>Click to view extra Sounds</summary>
+
+`QuakeSoundsE.Forcewithyoualways`, `QuakeSoundsE.Oneandonly`
+</details>
+
 ## Troubleshooting
 
 **I don't hear any sounds!**
