@@ -19,7 +19,7 @@ namespace QuakeSounds
         [JsonPropertyName("enabled_during_warmup")] public bool EnabledDuringWarmup { get; set; } = true;
         [JsonPropertyName("play_on_entity")] public string PlayOnEntity { get; set; } = "player";
         [JsonPropertyName("sound_hearable_by")] public string SoundHearableBy { get; set; } = "all";
-        [JsonPropertyName("ignore_bots")] public bool IgnoreBots { get; set; } = true;
+        [JsonPropertyName("ignore_bots")] public bool IgnoreBots { get; set; } = false;
         [JsonPropertyName("ignore_world_damage")] public bool IgnoreWorldDamage { get; set; } = true;
         [JsonPropertyName("count_self_kills")] public bool CountSelfKills { get; set; } = false;
         [JsonPropertyName("count_team_kills")] public bool CountTeamKills { get; set; } = false;

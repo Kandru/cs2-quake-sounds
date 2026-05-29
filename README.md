@@ -36,16 +36,16 @@ The configuration file is located at `/addons/counterstrikesharp/configs/plugins
     "enabled_during_warmup": true,
     "play_on_entity": "player",
     "sound_hearable_by": "all",
-    "ignore_bots": true,
-    "ignore_world_damage": true
+    "ignore_bots": false,
+    "ignore_world_damage": true,
+    "count_self_kills": false,
+    "count_team_kills": false,
+    "reset_kills_on_death": true,
+    "reset_kills_on_round_start": true
   },
   "precache": {
     "soundevent_file": "soundevents/soundevents_quakesounds.vsndevts"
   },
-  "count_self_kills": false,
-  "count_team_kills": false,
-  "reset_kills_on_death": true,
-  "reset_kills_on_round_start": true,
   "commands": {
     "settings": "qs",
     "settings_menu": false
@@ -139,40 +139,40 @@ The configuration file is located at `/addons/counterstrikesharp/configs/plugins
       "_sound": "QuakeSoundsD.Play"
     },
     "bomb_30": {
-    "_sound": "BombSounds.Sec30"
+      "_sound": "BombSounds.Sec30"
     },
     "bomb_20": {
-    "_sound": "BombSounds.Sec20"
+      "_sound": "BombSounds.Sec20"
     },
     "bomb_10": {
-    "_sound": "BombSounds.Sec10"
+      "_sound": "BombSounds.Sec10"
     },
     "bomb_9": {
-    "_sound": "BombSounds.Sec9"
+      "_sound": "BombSounds.Sec9"
     },
     "bomb_8": {
-    "_sound": "BombSounds.Sec8"
+      "_sound": "BombSounds.Sec8"
     },
     "bomb_7": {
-    "_sound": "BombSounds.Sec7"
+      "_sound": "BombSounds.Sec7"
     },
     "bomb_6": {
-    "_sound": "BombSounds.Sec6"
+      "_sound": "BombSounds.Sec6"
     },
     "bomb_5": {
-    "_sound": "BombSounds.Sec5"
+      "_sound": "BombSounds.Sec5"
     },
     "bomb_4": {
-    "_sound": "BombSounds.Sec4"
+      "_sound": "BombSounds.Sec4"
     },
     "bomb_3": {
-    "_sound": "BombSounds.Sec3"
+      "_sound": "BombSounds.Sec3"
     },
     "bomb_2": {
-    "_sound": "BombSounds.Sec2"
+      "_sound": "BombSounds.Sec2"
     },
     "bomb_1": {
-    "_sound": "BombSounds.Sec1"
+      "_sound": "BombSounds.Sec1"
     }
   },
   "data": {
