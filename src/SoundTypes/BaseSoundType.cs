@@ -10,6 +10,7 @@ namespace QuakeSounds.SoundTypes
         protected readonly SoundService SoundService = soundService;
         protected readonly MessageService MessageService = messageService;
         protected readonly FilterService FilterService = filterService;
+        private readonly Random rnd = new();
 
         private protected bool PlaySound(CCSPlayerController attacker, CCSPlayerController? victim, string soundKey, string? playOn = null)
         {
@@ -18,6 +19,13 @@ namespace QuakeSounds.SoundTypes
                 || !soundConfig.TryGetValue("_sound", out string? soundName))
             {
                 return false;
+            }
+
+            // check for multiple sounds separated by comma and choose a random one
+            if (soundName.Contains(','))
+            {
+                string[] soundNames = soundName.Split(',');
+                soundName = soundNames[rnd.Next(soundNames.Length)].Trim();
             }
 
             RecipientFilter filter = FilterService.PrepareFilter(attacker, victim, soundConfig.GetValueOrDefault("_filter"));

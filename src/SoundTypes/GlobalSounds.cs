@@ -7,6 +7,8 @@ namespace QuakeSounds.SoundTypes
 {
     public class GlobalSounds(PluginConfig config, SoundService soundService, MessageService messageService, FilterService filterService) : BaseSoundType(config, soundService, messageService, filterService)
     {
+        private readonly Random rnd = new();
+
         public void Play(string soundKey, string prefix)
         {
             string fullKey = $"{prefix}_{soundKey}";
@@ -14,6 +16,13 @@ namespace QuakeSounds.SoundTypes
                 !soundConfig.TryGetValue("_sound", out string? soundName))
             {
                 return;
+            }
+
+            // check for multiple sounds separated by comma and choose a random one
+            if (soundName.Contains(','))
+            {
+                string[] soundNames = soundName.Split(',');
+                soundName = soundNames[rnd.Next(soundNames.Length)].Trim();
             }
 
             RecipientFilter filter = FilterService.PrepareFilter(null, null, soundConfig.GetValueOrDefault("_filter"));

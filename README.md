@@ -217,7 +217,7 @@ This is the core of the configuration. You can map sounds to:
 **Sound Entry Format:**
 Each sound entry requires:
 1.  **Translations**: Text to display (e.g., `"en": "Headshot"`).
-2.  **`_sound`**: The sound to play.
+2.  **`_sound`**: The sound to play. Can have multiple sound names separated by comma. Will randomly choose one sound (randomness in CS2 is somewhat broken but it works).
     *   **Option A (Recommended):** Use a SoundEvent name (e.g., `"QuakeSoundsD.Headshot"`). These are defined in the workshop addon, are positional, and respect user volume settings.
     *   **Option B:** Use a direct file path (e.g., `"sounds/mysounds/headshot.vsnd"`). These play at full volume and are not positional.
 3.  **`_filter`** (Optional): Override who hears this specific sound (e.g., `"attacker"`).
