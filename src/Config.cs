@@ -90,12 +90,17 @@ namespace QuakeSounds
                 {
                     continue;
                 }
-                uint hash = SoundEventUtils.GenerateSoundHash(kvp.Value["_sound"]);
-                if (_soundHashes.ContainsKey(hash))
+                // check for multiple sounds separated by comma and hash each one
+                string[] soundNames = kvp.Value["_sound"].Split(',');
+                foreach (string soundName in soundNames)
                 {
-                    continue;
+                    uint hash = SoundEventUtils.GenerateSoundHash(soundName.Trim());
+                    if (_soundHashes.ContainsKey(hash))
+                    {
+                        continue;
+                    }
+                    _soundHashes.Add(hash, kvp.Key);
                 }
-                _soundHashes.Add(hash, kvp.Key);
             }
             Console.WriteLine(Localizer["core.config"]);
         }
