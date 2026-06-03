@@ -43,6 +43,7 @@ namespace QuakeSounds
     public class PrecacheConfig
     {
         [JsonPropertyName("soundevent_file")] public string SoundEventFile { get; set; } = "soundevents/soundevents_quakesounds.vsndevts";
+        [JsonPropertyName("additional_files")] public List<string> AdditionalFiles { get; set; } = [];
     }
 
     public class SoundPriorities

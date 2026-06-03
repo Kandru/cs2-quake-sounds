@@ -44,7 +44,8 @@ The configuration file is located at `/addons/counterstrikesharp/configs/plugins
     "reset_kills_on_round_start": true
   },
   "precache": {
-    "soundevent_file": "soundevents/soundevents_quakesounds.vsndevts"
+    "soundevent_file": "soundevents/soundevents_quakesounds.vsndevts",
+    "additional_files": []
   },
   "commands": {
     "settings": "qs",

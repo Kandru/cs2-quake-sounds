@@ -4,8 +4,6 @@ namespace QuakeSounds
 {
     public partial class QuakeSounds
     {
-        private readonly List<string> _precacheModels = [];
-
         private void OnServerPrecacheResources(ResourceManifest manifest)
         {
             // add soundevent file to precache
@@ -13,10 +11,13 @@ namespace QuakeSounds
             {
                 manifest.AddResource(Config.Precache.SoundEventFile);
             }
-            // add list to precache
-            foreach (string model in _precacheModels)
+            // add additional files to precache (if any)
+            if (Config.Precache.AdditionalFiles.Count > 0)
             {
-                manifest.AddResource(model);
+                foreach(string file in Config.Precache.AdditionalFiles)
+                {
+                    manifest.AddResource(file);
+                }
             }
         }
     }
