@@ -1,78 +1,63 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Utils;
+using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace QuakeSounds.Utils
 {
     public static class GameRules
     {
+        public static CCSGameRulesProxy? _gameRulesProxy;
         public static CCSGameRules? _gameRules;
         private static IEnumerable<CCSTeam>? _teamManager;
+        private static readonly ConcurrentDictionary<string, PropertyInfo?> _rulePropertyCache = new(StringComparer.Ordinal);
 
-        private static CCSGameRules? GetGameRule(bool forceRefresh = false)
+        private static CCSGameRules? GetGameRule()
         {
-            if (_gameRules == null || forceRefresh)
+            if (_gameRules == null
+                || _gameRulesProxy == null
+                || !_gameRulesProxy.IsValid)
             {
-                _gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules")
-                    .FirstOrDefault(static e => e != null && e.IsValid)?.GameRules;
+                _gameRulesProxy = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules")
+                    .FirstOrDefault(static e => e != null && e.IsValid);
+                _gameRules = _gameRulesProxy?.GameRules;
             }
             return _gameRules;
         }
 
-        public static void Refresh()
-        {
-            _ = GetGameRule(true);
-        }
-
-        public static object? Get(string rule, bool forceRefresh = false)
+        private static bool TryGetGameRules(out CCSGameRules rules, out CCSGameRulesProxy proxy)
         {
             _ = GetGameRule();
-            System.Reflection.PropertyInfo? property = _gameRules?.GetType().GetProperty(rule);
-            return property?.CanRead == true ? property.GetValue(_gameRules) : null;
+            if (_gameRules != null && _gameRulesProxy != null)
+            {
+                rules = _gameRules;
+                proxy = _gameRulesProxy;
+                return true;
+            }
+            rules = null!;
+            proxy = null!;
+            return false;
         }
 
-        public static void SetRoundTime(float minutes)
+        public static object? Get(string rule)
         {
-            _ = GetGameRule();
-            if (_gameRules != null)
+            if (!TryGetGameRules(out CCSGameRules? rules, out _))
             {
-                _gameRules.RoundTime = (int)Math.Round(minutes * 60);
+                return null;
             }
+
+            Type type = rules.GetType();
+            string key = string.Concat(type.FullName, ":", rule);
+            PropertyInfo? property = _rulePropertyCache.GetOrAdd(key, _ => type.GetProperty(rule));
+            return property?.CanRead == true ? property.GetValue(rules) : null;
         }
 
-        public static void TerminateRound(RoundEndReason reason, float delay = 0f)
+        public static void ResetCaches()
         {
-            _ = GetGameRule();
-            if (_gameRules != null)
-            {
-                _gameRules.RoundsPlayedThisPhase = 1;
-                _gameRules.ITotalRoundsPlayed = 1;
-                _gameRules.TotalRoundsPlayed = 1;
-                _gameRules.TerminateRound(delay, reason);
-            }
-        }
-
-        public static void SetTeamScore(int score, CsTeam team)
-        {
-            if (_teamManager == null)
-            {
-                _teamManager = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager");
-                if (_teamManager == null)
-                {
-                    return;
-                }
-            }
-
-            foreach (CCSTeam entry in _teamManager)
-            {
-                if (entry.TeamNum == (byte)team)
-                {
-                    entry.Score = score;
-                    Utilities.SetStateChanged(entry, "CTeam", "m_iScore");
-                    break;
-                }
-            }
+            _gameRules = null;
+            _gameRulesProxy = null;
+            _teamManager = null;
+            _rulePropertyCache.Clear();
         }
     }
 }

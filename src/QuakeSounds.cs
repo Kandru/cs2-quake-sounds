@@ -84,11 +84,12 @@ namespace QuakeSounds
             _messageService = null;
             _filterService = null;
             _soundManager = null;
+            GameRules.ResetCaches();
         }
 
         public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
         {
-            if (!Config.Global.EnabledDuringWarmup && (bool)GameRules.Get("WarmupPeriod")!)
+            if (!Config.Global.EnabledDuringWarmup && GameRules.Get("WarmupPeriod") is true)
             {
                 DebugPrint("Ignoring during warmup.");
                 return HookResult.Continue;
@@ -144,7 +145,7 @@ namespace QuakeSounds
                 return HookResult.Continue;
             }
             // remove player from dictionary
-            _playerKillCounter.Remove(player);
+            _ = _playerKillCounter.Remove(player);
             return HookResult.Continue;
         }
 
