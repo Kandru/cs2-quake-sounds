@@ -1,6 +1,8 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Utils;
+using Microsoft.Extensions.Localization;
 using QuakeSounds.Utils;
 
 namespace QuakeSounds.Sounds
@@ -9,17 +11,16 @@ namespace QuakeSounds.Sounds
         PluginConfig config,
         Dictionary<string, SoundEntry> entries,
         KillSoundKind[] killPriority,
-        SoundEmitter emitter,
-        Announcer announcer,
-        Recipients recipients,
+        PlayerLanguageManager languageManager,
+        IStringLocalizer localizer,
         Dictionary<int, int> killCounter)
     {
         private readonly PluginConfig _config = config;
         private readonly Dictionary<string, SoundEntry> _entries = entries;
         private readonly KillSoundKind[] _killPriority = killPriority;
-        private readonly SoundEmitter _emitter = emitter;
-        private readonly Announcer _announcer = announcer;
-        private readonly Recipients _recipients = recipients;
+        private readonly SoundEmitter _emitter = new(config);
+        private readonly Announcer _announcer = new(config, languageManager, localizer);
+        private readonly Recipients _recipients = new(config);
         private readonly Dictionary<int, int> _killCounter = killCounter;
 
         public void PlayKill(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath eventData)
@@ -155,7 +156,7 @@ namespace QuakeSounds.Sounds
 
             CCSPlayerController emitSource = source ?? attacker;
             string soundName = entry.PickSound();
-            _emitter.Play(emitSource, soundName, filter, playOn ?? _config.Global.PlayOnEntity);
+            _emitter.Play(emitSource, soundName, filter, playOn);
             _announcer.Print(emitSource, entry, filter);
             return true;
         }

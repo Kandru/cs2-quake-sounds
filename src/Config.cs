@@ -126,10 +126,13 @@ namespace QuakeSounds
 
         private void RebuildServices()
         {
-            var emitter = new SoundEmitter(Config);
-            var recipients = new Recipients(Config);
-            var announcer = new Announcer(Config, _playerLanguageManager, Localizer);
-            _soundPlayer = new SoundPlayer(Config, _entries, _killPriority, emitter, announcer, recipients, _playerKillCounter);
+            _soundPlayer = new SoundPlayer(
+                Config,
+                _entries,
+                _killPriority,
+                _playerLanguageManager,
+                Localizer,
+                _playerKillCounter);
         }
     }
 }
