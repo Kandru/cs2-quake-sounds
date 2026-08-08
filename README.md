@@ -222,6 +222,7 @@ Each sound entry requires:
     *   **Option A (Recommended):** Use a SoundEvent name (e.g., `"QuakeSoundsD.Headshot"`). These are defined in the workshop addon, are positional, and respect user volume settings.
     *   **Option B:** Use a direct file path (e.g., `"sounds/mysounds/headshot.vsnd"`). These play at full volume and are not positional.
 3.  **`_filter`** (Optional): Override who hears this specific sound (e.g., `"attacker"`).
+4.  **`_volume`** (Optional): Override the SoundEvent volume for this entry (e.g., `"0.5"`). Uses invariant-culture floats; only applies to SoundEvent names (Option A), not direct file paths.
 
 #### Messages & Commands
 *   **`messages`**:

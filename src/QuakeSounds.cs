@@ -1,10 +1,8 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
-using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.UserMessages;
-using QuakeSounds.Managers;
-using QuakeSounds.Services;
+using QuakeSounds.Sounds;
 using QuakeSounds.Utils;
 using System.Globalization;
 
@@ -15,13 +13,8 @@ namespace QuakeSounds
         public override string ModuleName => "CS2 QuakeSounds";
         public override string ModuleAuthor => "Kalle <kalle@kandru.de>";
 
-        private readonly Dictionary<CCSPlayerController, int> _playerKillCounter = [];
-
-        private SoundService? _soundService;
-        private MessageService? _messageService;
-        private FilterService? _filterService;
-        private SoundManager? _soundManager;
-        private int _bombExplosionTimer = 0;
+        private SoundPlayer? _soundPlayer;
+        private int _bombExplosionTimer;
 
         public override void Load(bool hotReload)
         {
@@ -39,12 +32,11 @@ namespace QuakeSounds
             RegisterEventHandler<EventBombExploded>(OnBombExploded);
             HookUserMessage(208, HookUserMessage208);
             AddCommand(Config.Commands.SettingsCommand, "QuakeSounds user settings", CommandQuakeSoundSettings);
-            InitializeServices();
+
             if (hotReload)
             {
                 foreach (CCSPlayerController entry in Utilities.GetPlayers().Where(
-                    static p => p.IsValid
-                        && !p.IsBot))
+                    static p => p.IsValid && !p.IsBot))
                 {
                     LoadPlayerLanguage(entry.SteamID);
                 }
@@ -67,67 +59,47 @@ namespace QuakeSounds
             DeregisterEventHandler<EventBombExploded>(OnBombExploded);
             UnhookUserMessage(208, HookUserMessage208);
             RemoveCommand(Config.Commands.SettingsCommand, CommandQuakeSoundSettings);
-            DestroyServices();
-        }
-
-        private void InitializeServices()
-        {
-            _soundService = new SoundService(Config, DebugPrint);
-            _messageService = new MessageService(Config, playerLanguageManager, GetLocalizedMessage);
-            _filterService = new FilterService(Config, DebugPrint);
-            _soundManager = new SoundManager(Config, _soundService, _messageService, _filterService, _playerKillCounter);
-        }
-
-        private void DestroyServices()
-        {
-            _soundService = null;
-            _messageService = null;
-            _filterService = null;
-            _soundManager = null;
-            GameRules.ResetCaches();
+            _soundPlayer = null;
         }
 
         public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
         {
-            if (!Config.Global.EnabledDuringWarmup && GameRules.Get("WarmupPeriod") is true)
+            if (!Config.Global.EnabledDuringWarmup && GameRules.IsWarmup)
             {
-                DebugPrint("Ignoring during warmup.");
+                Debug.Print("Ignoring during warmup.");
                 return HookResult.Continue;
             }
 
-            // check victim
             CCSPlayerController? victim = @event.Userid;
-            if (victim == null
-                || !victim.IsValid || (victim.IsBot && Config.Global.IgnoreBots))
+            if (victim == null || !victim.IsValid || (victim.IsBot && Config.Global.IgnoreBots))
             {
                 return HookResult.Continue;
             }
 
-            // reset kill count if victim exists in dictionary
-            if (_playerKillCounter.ContainsKey(victim) && Config.Global.ResetKillsOnDeath)
+            if (_playerKillCounter.ContainsKey(victim.Slot))
             {
-                _playerKillCounter[victim] = 0;
+                ResetKill(victim);
             }
 
-            // check attacker
             CCSPlayerController? attacker = @event.Attacker;
-            if (attacker == null
-                || !attacker.IsValid || (attacker.IsBot && Config.Global.IgnoreBots))
+            if (attacker == null || !attacker.IsValid || (attacker.IsBot && Config.Global.IgnoreBots))
             {
                 return HookResult.Continue;
             }
 
-            // process possible kill sound
-            ProcessKill(attacker, victim, @event);
+            if (ShouldCountKill(attacker, victim))
+            {
+                UpdateKillCount(attacker);
+            }
+
+            _soundPlayer?.PlayKill(attacker, victim, @event);
             return HookResult.Continue;
         }
 
         private HookResult OnPlayerConnect(EventPlayerConnectFull @event, GameEventInfo info)
         {
             CCSPlayerController? player = @event.Userid;
-            if (player == null
-                || !player.IsValid
-                || player.IsBot)
+            if (player == null || !player.IsValid || player.IsBot)
             {
                 return HookResult.Continue;
             }
@@ -139,40 +111,36 @@ namespace QuakeSounds
         private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
         {
             CCSPlayerController? player = @event.Userid;
-            if (player == null
-                || !player.IsValid)
+            if (player == null || !player.IsValid)
             {
                 return HookResult.Continue;
             }
-            // remove player from dictionary
-            _ = _playerKillCounter.Remove(player);
+
+            RemoveKill(player);
             return HookResult.Continue;
         }
 
         private HookResult OnPlayerChatCommand(EventPlayerChat @event, GameEventInfo info)
         {
             CCSPlayerController? player = Utilities.GetPlayerFromUserid(@event.Userid);
-            if (player == null
-                || !player.IsValid
-                || player.IsBot)
+            if (player == null || !player.IsValid || player.IsBot)
             {
                 return HookResult.Continue;
             }
 
             if (@event.Text.StartsWith("!lang", StringComparison.OrdinalIgnoreCase))
             {
-                // get language from command instead of player because it defaults to english all the time Oo
                 string? language = @event.Text.Split(' ').Skip(1).FirstOrDefault()?.Trim();
                 if (language == null
-                    || !CultureInfo.GetCultures(CultureTypes.AllCultures).Any(c => c.Name.Equals(language, StringComparison.OrdinalIgnoreCase)))
+                    || !CultureInfo.GetCultures(CultureTypes.AllCultures)
+                        .Any(c => c.Name.Equals(language, StringComparison.OrdinalIgnoreCase)))
                 {
                     return HookResult.Continue;
                 }
-                // set language for player
+
                 SavePlayerLanguage(player.SteamID, language);
-                return HookResult.Continue;
             }
-            // redraw GUI
+
             return HookResult.Continue;
         }
 
@@ -183,121 +151,89 @@ namespace QuakeSounds
             {
                 return HookResult.Continue;
             }
+
             _bombExplosionTimer = (int)Server.CurrentTime + mpC4Timer.GetPrimitiveValue<int>() + 1;
             _ = AddTimer(1.0f, BombSoundHandler);
-            _soundManager?.PlayBombSound("planted");
+            _soundPlayer?.PlayBomb("planted");
             return HookResult.Continue;
         }
 
         private HookResult OnBombDefused(EventBombDefused @event, GameEventInfo info)
         {
             _bombExplosionTimer = 0;
-            _soundManager?.PlayBombSound("defused");
+            _soundPlayer?.PlayBomb("defused");
             return HookResult.Continue;
         }
 
         private HookResult OnBombExploded(EventBombExploded @event, GameEventInfo info)
         {
             _bombExplosionTimer = 0;
-            _soundManager?.PlayBombSound("exploded");
+            _soundPlayer?.PlayBomb("exploded");
             return HookResult.Continue;
         }
 
         private void BombSoundHandler()
         {
             int secondsLeft = _bombExplosionTimer - (int)Server.CurrentTime;
-            if (_bombExplosionTimer == 0
-                || secondsLeft <= 0)
+            if (_bombExplosionTimer == 0 || secondsLeft <= 0)
             {
                 return;
             }
-            _soundManager?.PlayBombSound(secondsLeft.ToString());
+
+            _soundPlayer?.PlayBomb(secondsLeft.ToString());
             _ = AddTimer(1.0f, BombSoundHandler);
         }
 
         private void OnMapStart(string mapName)
         {
-            // reset player kills
-            _playerKillCounter.Clear();
+            GameRules.Invalidate();
+            ClearKills();
         }
 
         public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
         {
             if (Config.Global.ResetKillsOnRoundStart)
             {
-                _playerKillCounter.Clear();
+                ClearKills();
             }
 
             _bombExplosionTimer = 0;
-            _soundManager?.PlayRoundSound("start");
+            _soundPlayer?.PlayRound("start");
             return HookResult.Continue;
         }
 
         public HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
         {
             _bombExplosionTimer = 0;
-            _soundManager?.PlayRoundSound("end");
+            _soundPlayer?.PlayRound("end");
             return HookResult.Continue;
         }
 
         public HookResult OnRoundFreezeEnd(EventRoundFreezeEnd @event, GameEventInfo info)
         {
-            _soundManager?.PlayRoundSound("freeze_end");
+            _soundPlayer?.PlayRound("freeze_end");
             return HookResult.Continue;
         }
 
         public HookResult HookUserMessage208(UserMessage um)
         {
             uint soundevent = um.ReadUInt("soundevent_hash");
-            uint soundevent_guid = um.ReadUInt("soundevent_guid");
-            if (!_soundHashes.ContainsKey(soundevent)
-                || !Config.Sounds.ContainsKey(_soundHashes[soundevent])
-                || !Config.Sounds[_soundHashes[soundevent]].ContainsKey("_volume"))
+            if (!_soundHashes.TryGetValue(soundevent, out SoundEntry? entry) || entry.Volume is not float volume)
             {
                 return HookResult.Continue;
             }
-            DebugPrint($"Received sound event: {_soundHashes[soundevent]}, hash: {soundevent}.");
+
+            uint soundeventGuid = um.ReadUInt("soundevent_guid");
+            Debug.Print($"Received sound event: {entry.Key}, hash: {soundevent}.");
             new SoundParams
             {
-                Guid = soundevent_guid,
+                Guid = soundeventGuid,
                 Recipients = um.Recipients
             }
-            .Volume(int.TryParse(Config.Sounds[_soundHashes[soundevent]]["_volume"], out int vol) ? vol : 1f)
+            .Volume(volume)
             .Send();
-            DebugPrint($"Sending sound event: {_soundHashes[soundevent]} with volume {vol}");
+            Debug.Print($"Sending sound event: {entry.Key} with volume {volume}");
             return HookResult.Continue;
-        }
-
-        private void ProcessKill(CCSPlayerController attacker, CCSPlayerController? victim, EventPlayerDeath @event)
-        {
-            if (ShouldCountKill(attacker, victim))
-            {
-                UpdateKillCount(attacker);
-            }
-
-            _soundManager?.PlayKillSound(attacker, victim, @event);
-        }
-
-        private bool ShouldCountKill(CCSPlayerController attacker, CCSPlayerController? victim)
-        {
-            return attacker == victim
-                ? Config.Global.CountSelfKills
-                : victim?.IsValid == true && attacker.Team == victim.Team ? Config.Global.CountTeamKills : attacker != victim;
-        }
-
-        private void UpdateKillCount(CCSPlayerController attacker)
-        {
-            _ = _playerKillCounter.TryGetValue(attacker, out int kills);
-            _playerKillCounter[attacker] = kills + 1;
-            DebugPrint($"Player {attacker.PlayerName} has {_playerKillCounter[attacker]} kills.");
-        }
-
-        private void DebugPrint(string message)
-        {
-            if (Config.Debug)
-            {
-                Console.WriteLine(Localizer["core.debugprint"].Value.Replace("{message}", message));
-            }
         }
     }
 }

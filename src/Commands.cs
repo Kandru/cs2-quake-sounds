@@ -32,7 +32,13 @@ namespace QuakeSounds
         public void CommandQuakeSoundAdmin(CCSPlayerController player, CommandInfo command)
         {
             string subCommand = command.GetArg(1).ToLower(System.Globalization.CultureInfo.CurrentCulture);
-            string response = ProcessAdminCommand(subCommand);
+            string response = subCommand switch
+            {
+                "reload" => ReloadAndApply(),
+                "disable" => SetEnabled(false),
+                "enable" => SetEnabled(true),
+                _ => Localizer["admin.unknown_command"].Value.Replace("{command}", subCommand)
+            };
             command.ReplyToCommand(response);
         }
 
@@ -49,35 +55,18 @@ namespace QuakeSounds
             MenuManager.OpenChatMenu(player, menu);
         }
 
-        private string ProcessAdminCommand(string subCommand)
-        {
-            return subCommand switch
-            {
-                "reload" => ReloadConfig(),
-                "disable" => DisablePlugin(),
-                "enable" => EnablePlugin(),
-                _ => Localizer["admin.unknown_command"].Value.Replace("{command}", subCommand)
-            };
-        }
-
-        private string ReloadConfig()
+        private string ReloadAndApply()
         {
             Config.Reload();
+            ApplyConfig();
             return Localizer["admin.reload"];
         }
 
-        private string DisablePlugin()
+        private string SetEnabled(bool enabled)
         {
-            Config.Enabled = false;
+            Config.Enabled = enabled;
             Config.Update();
-            return Localizer["admin.disable"];
-        }
-
-        private string EnablePlugin()
-        {
-            Config.Enabled = true;
-            Config.Update();
-            return Localizer["admin.enable"];
+            return Localizer[enabled ? "admin.enable" : "admin.disable"];
         }
     }
 }

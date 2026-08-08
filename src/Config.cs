@@ -1,9 +1,7 @@
 ﻿using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Extensions;
-using CounterStrikeSharp.API.Core.Translations;
-using System.Globalization;
 using System.Text.Json.Serialization;
+using QuakeSounds.Sounds;
 using QuakeSounds.Utils;
 
 namespace QuakeSounds
@@ -69,116 +67,69 @@ namespace QuakeSounds
     public partial class QuakeSounds : BasePlugin, IPluginConfig<PluginConfig>
     {
         public required PluginConfig Config { get; set; }
-        private readonly PlayerLanguageManager playerLanguageManager = new();
-        private readonly Dictionary<uint, string> _soundHashes = [];
+
+        private readonly Dictionary<string, SoundEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<uint, SoundEntry> _soundHashes = [];
+        private KillSoundKind[] _killPriority = [];
 
         public void OnConfigParsed(PluginConfig config)
         {
             Config = config;
-            // sort Config.Sound.Sounds and sub dictionaries by key
             Config.Sounds = Config.Sounds
                 .OrderBy(static x => int.TryParse(x.Key, out int key) ? key : int.MaxValue)
                 .ToDictionary(static x => x.Key, static x => x.Value
                     .OrderBy(static y => int.TryParse(y.Key, out int key) ? key : int.MaxValue)
                     .ToDictionary(static y => y.Key, static y => y.Value));
-            // update config and write new values from plugin to config file if changed after update
             Config.Update();
-            // calculate sound event hash for each sound
-            foreach (KeyValuePair<string, Dictionary<string, string>> kvp in Config.Sounds)
-            {
-                if (!kvp.Value.ContainsKey("_sound"))
-                {
-                    continue;
-                }
-                // check for multiple sounds separated by comma and hash each one
-                string[] soundNames = kvp.Value["_sound"].Split(',');
-                foreach (string soundName in soundNames)
-                {
-                    uint hash = SoundEventUtils.GenerateSoundHash(soundName.Trim());
-                    if (_soundHashes.ContainsKey(hash))
-                    {
-                        continue;
-                    }
-                    _soundHashes.Add(hash, kvp.Key);
-                }
-            }
+            ApplyConfig();
             Console.WriteLine(Localizer["core.config"]);
         }
 
-        private bool ToggleMute(CCSPlayerController player)
+        /// <summary>
+        /// Rebuild parsed sound cache and derived services. Called after initial parse and after reload.
+        /// </summary>
+        internal void ApplyConfig()
         {
-            if (Config.Data.PlayerMuted.Contains(player.SteamID))
+            Debug.Configure(Config.Debug, msg => Localizer["core.debugprint"].Value.Replace("{message}", msg));
+
+            _entries.Clear();
+            _soundHashes.Clear();
+
+            foreach ((string key, Dictionary<string, string> raw) in Config.Sounds)
             {
-                _ = Config.Data.PlayerMuted.Remove(player.SteamID);
-                Config.Update();
-                player.PrintToChat(Localizer["sounds.unmuted"]);
-                return false;
+                SoundEntry? entry = SoundEntry.TryParse(key, raw);
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                _entries[key] = entry;
+                foreach (string soundName in entry.SoundNames)
+                {
+                    uint hash = SoundEventUtils.GenerateSoundHash(soundName);
+                    _ = _soundHashes.TryAdd(hash, entry);
+                }
             }
-            else
-            {
-                Config.Data.PlayerMuted.Add(player.SteamID);
-                Config.Update();
-                player.PrintToChat(Localizer["sounds.muted"]);
-                return true;
-            }
+
+            _killPriority =
+            [
+                .. new (KillSoundKind Kind, int Priority)[]
+                {
+                    (KillSoundKind.SpecialEvents, Config.SoundPriorities.SpecialEvents),
+                    (KillSoundKind.Weapons, Config.SoundPriorities.Weapons),
+                    (KillSoundKind.KillStreak, Config.SoundPriorities.KillStreak)
+                }.OrderBy(static x => x.Priority).Select(static x => x.Kind)
+            ];
+
+            RebuildServices();
         }
 
-        private void LoadPlayerLanguage(ulong? steamID)
+        private void RebuildServices()
         {
-            if (!steamID.HasValue)
-            {
-                return;
-            }
-            // check if the player has a language set
-            if (Config.Data.PlayerLanguages.TryGetValue(steamID.Value, out string? language) && !string.IsNullOrWhiteSpace(language))
-            {
-                // set the language for the player
-                playerLanguageManager.SetLanguage(
-                    new SteamID(steamID.Value),
-                    GetCultureOrInvariant(language));
-            }
-        }
-
-        private void SavePlayerLanguage(ulong? steamID, string language)
-        {
-            if (!steamID.HasValue || string.IsNullOrWhiteSpace(language))
-            {
-                return;
-            }
-            // Try to add or update the player's language
-            if (!Config.Data.PlayerLanguages.TryAdd(steamID.Value, language))
-            {
-                Config.Data.PlayerLanguages[steamID.Value] = language;
-            }
-            // write config
-            Config.Update();
-            // set the language for the player
-            playerLanguageManager.SetLanguage(new SteamID(steamID.Value), GetCultureOrInvariant(language));
-            DebugPrint($"Saved language for player {steamID} to {language}.");
-        }
-
-        private string GetLocalizedMessage(string key, CultureInfo culture)
-        {
-            CultureInfo.CurrentUICulture = culture;
-            return Localizer[key];
-        }
-
-        private static CultureInfo GetCultureOrInvariant(string language)
-        {
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                return CultureInfo.InvariantCulture;
-            }
-
-            try
-            {
-                return new CultureInfo(language);
-            }
-            catch (CultureNotFoundException)
-            {
-                Console.WriteLine($"[QuakeSounds] Culture '{language}' not available, using default (invariant).");
-                return CultureInfo.InvariantCulture;
-            }
+            var emitter = new SoundEmitter(Config);
+            var recipients = new Recipients(Config);
+            var announcer = new Announcer(Config, _playerLanguageManager, Localizer);
+            _soundPlayer = new SoundPlayer(Config, _entries, _killPriority, emitter, announcer, recipients, _playerKillCounter);
         }
     }
 }

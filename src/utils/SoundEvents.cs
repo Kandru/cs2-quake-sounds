@@ -3,16 +3,6 @@ using CounterStrikeSharp.API.Modules.Utils;
 
 namespace QuakeSounds.Utils
 {
-    public enum SoundEventFieldType : byte
-    {
-        Bool = 0,
-        Int32 = 1,
-        UInt32 = 2,
-        UInt64 = 3,
-        Float = 4,
-        Float3 = 5
-    }
-
     public static class SoundEventUtils
     {
         public static uint GenerateSoundHash(string soundEventName)
@@ -22,12 +12,7 @@ namespace QuakeSounds.Utils
 
         internal static uint MurmurHash2(string input, uint seed)
         {
-            byte[] a2 = System.Text.Encoding.ASCII.GetBytes(input.ToLower());
-            if (a2 == null)
-            {
-                return uint.MaxValue;
-            }
-
+            byte[] a2 = System.Text.Encoding.ASCII.GetBytes(input.ToLowerInvariant());
             long v4 = a2.Length;
             uint v6 = (uint)(v4 ^ seed);
             int offset = 0;
@@ -64,82 +49,20 @@ namespace QuakeSounds.Utils
         }
     }
 
-    public abstract class SoundParamsBase<T> where T : SoundParamsBase<T>
+    public class SoundParams
     {
-        protected const uint M_CONST = 1540483477;
-        protected readonly List<(string name, byte type, byte[] data)> _parameters = [];
-        protected abstract uint FieldNameHashSeed { get; }
-
-        protected T AddParameter(string name, SoundEventFieldType fieldType, byte[] data)
-        {
-            _parameters.Add((name, (byte)fieldType, data));
-            return (T)this;
-        }
-
-        public T WithBool(string name, bool value)
-        {
-            return AddParameter(name, SoundEventFieldType.Bool, BitConverter.GetBytes(value));
-        }
-
-        public T WithInt32(string name, int value)
-        {
-            return AddParameter(name, SoundEventFieldType.Int32, BitConverter.GetBytes(value));
-        }
-
-        public T WithUInt32(string name, uint value)
-        {
-            return AddParameter(name, SoundEventFieldType.UInt32, BitConverter.GetBytes(value));
-        }
-
-        public T WithUInt64(string name, ulong value)
-        {
-            return AddParameter(name, SoundEventFieldType.UInt64, BitConverter.GetBytes(value));
-        }
-
-        public T WithFloat(string name, float value)
-        {
-            return AddParameter(name, SoundEventFieldType.Float, BitConverter.GetBytes(value));
-        }
-
-        public T WithFloat3(string name, Vector value)
-        {
-            byte[] data = new byte[12];
-            Buffer.BlockCopy(BitConverter.GetBytes(value.X), 0, data, 0, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(value.Y), 0, data, 4, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(value.Z), 0, data, 8, 4);
-            return AddParameter(name, SoundEventFieldType.Float3, data);
-        }
-
-        public T Volume(float volume)
-        {
-            return WithFloat("volume", volume);
-        }
-
-        protected byte[] BuildPackedParams()
-        {
-            List<byte> result = [];
-
-            foreach ((string? name, byte type, byte[]? data) in _parameters)
-            {
-                uint paramNameHash = SoundEventUtils.MurmurHash2(name, FieldNameHashSeed);
-                result.AddRange(BitConverter.GetBytes(paramNameHash));
-                result.Add(type);
-                result.Add((byte)data.Length);
-                result.Add(0);
-                result.AddRange(data);
-            }
-
-            return [.. result];
-        }
-    }
-
-    public class SoundParams : SoundParamsBase<SoundParams>
-    {
-        protected override uint FieldNameHashSeed => 0xB5D9F700;
+        private const uint FieldNameHashSeed = 0xB5D9F700;
+        private const byte FloatFieldType = 4;
+        private readonly List<(string name, byte type, byte[] data)> _parameters = [];
 
         public uint Guid { get; set; }
-
         public RecipientFilter? Recipients { get; set; }
+
+        public SoundParams Volume(float volume)
+        {
+            _parameters.Add(("volume", FloatFieldType, BitConverter.GetBytes(volume)));
+            return this;
+        }
 
         public void Send()
         {
@@ -152,6 +75,23 @@ namespace QuakeSounds.Utils
             }
 
             message.Send();
+        }
+
+        private byte[] BuildPackedParams()
+        {
+            List<byte> result = [];
+
+            foreach ((string name, byte type, byte[] data) in _parameters)
+            {
+                uint paramNameHash = SoundEventUtils.MurmurHash2(name, FieldNameHashSeed);
+                result.AddRange(BitConverter.GetBytes(paramNameHash));
+                result.Add(type);
+                result.Add((byte)data.Length);
+                result.Add(0);
+                result.AddRange(data);
+            }
+
+            return [.. result];
         }
     }
 }
